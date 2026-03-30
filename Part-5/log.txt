@@ -1,0 +1,2 @@
+App started
+User logged in
