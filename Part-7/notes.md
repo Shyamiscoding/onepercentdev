@@ -1,6 +1,6 @@
-# Part 6.1 — Memory: Stack and Heap
+# Part 7 — Memory: Stack and Heap
 
-## Connecting to Part 6
+## Connecting to Part 6 — The Execution Pipeline
 
 In Part 6, we followed `x = 10` through the entire execution pipeline:
 
@@ -241,11 +241,11 @@ The bytecode is just a task list — passive, written on paper. The PVM is the p
 
 ### Plain Language → Formal Terms
 
-The **value** sitting in the heap — Python calls it an **object**. Every piece of data Python creates is an object. What exactly an object is, what properties it has — we will go deep in Part 7.
+The **value** sitting in the heap — Python calls it an **object**. Every piece of data Python creates is an object. What exactly an object is, what properties it has — we will go deep in Part 8.
 
-The **name** `x` on the stack — most people call it a "variable." But it does not work like a box holding a value. It holds an **arrow** pointing to a value. We will break the "variable is a box" myth completely in Part 7.
+The **name** `x` on the stack — most people call it a "variable." But it does not work like a box holding a value. It holds an **arrow** pointing to a value. We will break the "variable is a box" myth completely in Part 8.
 
-For now: **names on the stack, values in the heap, arrows connecting them.**
+For now: **labels on the stack, values in the heap, arrows connecting them.**
 
 ---
 
@@ -516,4 +516,4 @@ print(id(y))
 
 ---
 
-> **Next:** Part 7 — Variables, Names, and Objects. The "variable is a box" myth is wrong, and understanding the truth prevents the most common Python bugs.
+> **Next:** Part 8 — Variables, Names, and Objects. What we called "labels" and "values" have real technical names — variables and objects. The "variable is a box" myth is wrong, and understanding the truth prevents the most common Python bugs.

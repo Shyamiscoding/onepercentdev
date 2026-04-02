@@ -315,5 +315,5 @@ You do not need to memorize any of this. The goal is to see with your own eyes t
 
 ---
 
-> **Next:** Part 6.1 — Memory: Stack and Heap. When your Python program runs, where does the data actually live? Understanding stack and heap is the key to understanding how variables, objects, and memory work in Python.
+> **Next:** Part 7 — Memory: Stack and Heap. When your Python program runs, where does the data actually live? Understanding stack and heap is the key to understanding how variables, objects, and memory work in Python.
 
