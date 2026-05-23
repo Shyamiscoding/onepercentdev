@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "example-project"
+version = "0.1.0"
+description = "Module vs Package vs Library demo — managed with Poetry"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.0"
+openai = "^1.82.0"
+python-dotenv = "^1.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
