@@ -1,0 +1,2 @@
+original line
+appended line

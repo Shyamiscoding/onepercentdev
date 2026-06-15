@@ -1,0 +1,2 @@
+first write (w created/cleared the file)
+second write (a added to the end)
