@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOP Master Flow — The Complete Visual Guide</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#2a3344;
+  --text:#e9eef5; --muted:#a6b3c4; --dim:#7686a0;
+  --strong:#ffffff; --body:#d4dde8; --soft:#cdd6e0;
+  --code-inline:#ffb86b; --chip-text:#8ec4ff; --danger-soft:#ff9c9c; --th-bg:#161b22;
+  --yellow:#ffd43b; --blue:#4dabf7; --green:#51cf66; --red:#ff6b6b; --purple:#b197fc;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+[data-theme="light"]{
+  --bg:#f6f8fa; --panel:#ffffff; --panel2:#eef1f5; --border:#dbe2ea;
+  --text:#1f2733; --muted:#566377; --dim:#7d8a9c;
+  --strong:#0f141b; --body:#2f3a47; --soft:#3f4b5a;
+  --code-inline:#b5530a; --chip-text:#1565c0; --danger-soft:#d63a3a; --th-bg:#eef1f5;
+  --yellow:#9a7400; --blue:#1c7ed6; --green:#2b8a3e; --red:#e03131; --purple:#6741d9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;font-size:17px;transition:background .25s ease,color .25s ease}
+main{max-width:900px;margin:0 auto;padding:0 22px 60px}
+
+/* Hero */
+.hero{max-width:900px;margin:0 auto;padding:60px 22px 24px;text-align:center}
+.hero .tag{display:inline-block;background:rgba(77,171,247,.12);color:var(--blue);border:1px solid rgba(77,171,247,.3);border-radius:999px;padding:5px 14px;font-size:13px;font-weight:600;margin-bottom:18px}
+.hero h1{font-size:clamp(28px,5vw,44px);font-weight:800;line-height:1.15;letter-spacing:-.02em;margin-bottom:14px}
+.hero p{font-size:clamp(16px,2.3vw,20px);color:var(--muted);max-width:640px;margin:0 auto}
+
+/* Section blocks */
+section{padding:34px 0;border-bottom:1px solid var(--border)}
+section:last-of-type{border-bottom:none}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--blue);color:#04121f;font-weight:800;font-size:15px;margin-right:10px}
+h2{font-size:clamp(23px,3.5vw,30px);font-weight:800;letter-spacing:-.01em;margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap}
+.sub{color:var(--muted);font-size:16px;margin-bottom:18px}
+h3{font-size:19px;font-weight:700;margin:22px 0 10px;color:var(--strong)}
+p{margin-bottom:13px;color:var(--body)}
+strong{color:var(--strong);font-weight:700}
+.hi{color:var(--yellow);font-weight:700}
+.hi-b{color:var(--blue);font-weight:700}
+.hi-g{color:var(--green);font-weight:700}
+a{color:var(--blue);text-decoration:none;border-bottom:1px dotted var(--blue)}
+a:hover{border-bottom-style:solid}
+ul{margin:0 0 14px 4px;list-style:none}
+li{margin-bottom:10px;color:var(--body);padding-left:26px;position:relative}
+li::before{content:"";position:absolute;left:4px;top:11px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
+code:not(pre code){background:var(--panel2);color:var(--code-inline);padding:2px 7px;border-radius:5px;font-family:var(--mono);font-size:.86em;border:1px solid var(--border)}
+
+/* Mermaid */
+.diagram{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;margin:18px 0;overflow-x:auto}
+.diagram .cap{font-size:14px;color:var(--dim);text-align:center;margin-top:10px;font-style:italic}
+.mermaid{display:flex;justify-content:center}
+
+/* Big idea boxes */
+.bigbox{border-radius:16px;padding:22px 24px;margin:20px 0;border:1px solid var(--border)}
+.bigbox.yellow{background:linear-gradient(135deg,rgba(92, 84, 53, 0.1),rgba(255,212,59,.03));border-color:rgba(255,212,59,.4)}
+.bigbox.blue{background:rgba(77,171,247,.07);border-left:5px solid var(--blue)}
+.bigbox .label{font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px}
+.bigbox.yellow .label{color:var(--yellow)}
+.bigbox.blue .label{color:var(--blue)}
+.bigbox .big{font-size:20px;font-weight:700;color:var(--strong);line-height:1.45}
+
+/* simple compare cards */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.cc{border-radius:14px;padding:16px 18px;border:1px solid var(--border)}
+.cc.bad{background:rgba(255,107,107,.06);border-color:rgba(255,107,107,.3)}
+.cc.good{background:rgba(81,207,102,.06);border-color:rgba(81,207,102,.3)}
+.cc .h{font-weight:800;font-size:15px;margin-bottom:8px}
+.cc.bad .h{color:var(--red)}
+.cc.good .h{color:var(--green)}
+
+/* code */
+.code-wrap{margin:16px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.code-head{background:#0a0e14;padding:7px 14px;font-family:var(--mono);font-size:12px;color:var(--dim);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.code-head .copy{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer}
+.code-head .copy:hover{color:#fff;border-color:var(--blue)}
+pre{margin:0;overflow-x:auto;background:#0d1117}
+pre code{display:block;padding:15px 17px;font-family:var(--mono);font-size:13.5px;line-height:1.65;color:#e6edf3;white-space:pre}
+.cmt{color:#6b7787}
+.kw{color:#ff7b9c}
+.str{color:#9ece6a}
+.fn{color:#7aa2f7}
+.builtin{color:#e0af68}
+
+/* data type chips */
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}
+.chip{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:7px 13px;font-family:var(--mono);font-size:14px;color:var(--chip-text)}
+.chip.you{background:rgba(255,212,59,.1);border-color:rgba(255,212,59,.4);color:var(--yellow)}
+
+.tnote{background:rgba(77,171,247,.08);border:1px solid rgba(77,171,247,.32);border-radius:12px;padding:13px 18px;margin:14px 0;font-size:15px;color:var(--soft)}
+.tnote b{color:var(--blue)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:14px 0}
+.gitem{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 14px}
+.gitem .t{font-family:var(--mono);color:var(--yellow);font-weight:700;font-size:14px}
+.gitem .d{font-size:14px;color:var(--muted);margin-top:3px}
+@media(max-width:640px){.gloss{grid-template-columns:1fr}}
+
+/* per-part index grid */
+.stage{margin:20px 0 9px;font-weight:800;font-size:14.5px;color:var(--blue);letter-spacing:.02em;display:flex;align-items:center;gap:9px}
+.stage .r{font-family:var(--mono);font-weight:600;color:var(--dim);font-size:13px;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:1px 8px}
+.stage.proc{color:var(--green)}
+.stage.oop{color:var(--yellow)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px;margin-bottom:6px}
+.pcard{display:flex;gap:9px;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-size:13px;color:var(--soft);line-height:1.3}
+.pcard .pn{flex:none;min-width:24px;height:24px;display:grid;place-items:center;background:rgba(77,171,247,.12);border:1px solid rgba(77,171,247,.35);border-radius:7px;color:var(--blue);font-weight:700;font-size:12px;font-family:var(--mono)}
+.pcard.proc .pn{background:rgba(81,207,102,.12);border-color:rgba(81,207,102,.4);color:var(--green)}
+@media(max-width:640px){.pgrid{grid-template-columns:1fr 1fr}}
+
+.hi-p{color:var(--purple);font-weight:700}
+.bigbox.purple{background:rgba(177,151,252,.08);border-left:5px solid var(--purple)}
+.bigbox.purple .label{color:var(--purple)}
+
+/* 4 pillars */
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:16px 0}
+.pill{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:15px 17px;border-top:3px solid var(--blue)}
+.pill .pt{font-weight:800;font-size:16px;color:var(--strong);margin-bottom:2px}
+.pill .tw{font-family:var(--mono);font-size:12px;color:var(--blue);margin-bottom:8px}
+.pill .pd{font-size:13.5px;color:var(--muted);line-height:1.5}
+.pill.p1{border-top-color:var(--green)} .pill.p1 .tw{color:var(--green)}
+.pill.p3{border-top-color:var(--yellow)} .pill.p3 .tw{color:var(--yellow)}
+.pill.p4{border-top-color:var(--purple)} .pill.p4 .tw{color:var(--purple)}
+
+/* arc strip */
+.arc{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:9px;margin:14px 0}
+.arccard{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 13px}
+.arccard.now{border-color:rgba(255,212,59,.5);background:rgba(255,212,59,.06)}
+.arccard .ap{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
+.arccard .an{font-weight:700;font-size:14px;color:var(--text);margin-top:2px}
+.arccard.now .an{color:var(--yellow)}
+
+/* part dividers */
+.part{margin:50px 0 4px;padding-top:30px;border-top:2px solid var(--border);text-align:center}
+.part .pk{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--blue);text-transform:uppercase}
+.part .pt2{font-size:clamp(20px,3vw,26px);font-weight:800;color:var(--strong);margin-top:4px}
+.part .ps{font-size:13.5px;color:var(--muted);margin-top:6px;max-width:640px;margin-left:auto;margin-right:auto}
+.adv{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:#ffd07a;background:#2a2008;border:1px solid #5c4a16;border-radius:999px;padding:2px 10px;text-transform:uppercase;margin-bottom:6px}
+
+/* myths table */
+.mtable{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px}
+.mtable td{border:1px solid var(--border);padding:10px 13px;vertical-align:top;line-height:1.5}
+.mtable tr td:first-child{color:var(--danger-soft);width:40%}
+.mtable tr td:last-child{color:var(--soft)}
+.mtable .ok{color:var(--green);font-weight:700}
+
+/* history timeline */
+.tl{margin:18px 0;padding-left:24px;border-left:2px solid var(--border)}
+.tl .ev{position:relative;margin-bottom:18px}
+.tl .ev::before{content:"";position:absolute;left:-31px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--blue);border:3px solid var(--bg)}
+.tl .yr{font-family:var(--mono);color:var(--yellow);font-weight:700;font-size:14px}
+.tl .et{font-weight:700;color:var(--strong)}
+.tl .ed{font-size:14.5px;color:var(--muted)}
+
+/* source links */
+.srcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin:14px 0}
+.srcs a{display:block;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 14px;border-bottom:1px solid var(--border);color:var(--soft);font-size:14px}
+.srcs a:hover{border-color:var(--blue)}
+.srcs a b{color:var(--blue);display:block;font-size:14px}
+
+/* inheritance-type cards */
+.inh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:13px;margin:16px 0}
+.inh-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:13px 15px}
+.inh-card h4{margin:0;color:var(--strong);font-size:15px}
+.inh-card .sup{font-size:12px;font-family:var(--mono)}
+.inh-card .sup.yes{color:var(--green)}
+.inh-card .py{font-family:var(--mono);font-size:12.5px;color:var(--chip-text);margin-top:8px;display:block}
+.inh-card .mermaid{margin:4px 0 2px}
+
+/* comparison table (3 columns) */
+.ctable{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+.ctable th{background:var(--th-bg);color:var(--strong);text-align:left;padding:9px 12px;border:1px solid var(--border);font-size:13px}
+.ctable td{border:1px solid var(--border);padding:9px 12px;vertical-align:top;color:var(--soft);line-height:1.5}
+.ctable td:first-child{color:var(--muted);font-weight:600;width:24%}
+.ctable .y{color:var(--green);font-weight:700}
+.ctable .n{color:var(--danger-soft);font-weight:700}
+
+/* build steps */
+.buildstep{display:flex;gap:13px;align-items:flex-start;margin:13px 0}
+.buildstep .bn{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(177,151,252,.14);border:1px solid rgba(177,151,252,.4);color:var(--purple);font-weight:800;font-family:var(--mono);font-size:14px}
+.buildstep .bc{flex:1;min-width:0;font-size:15px;color:var(--body)}
+.buildstep .bt{font-weight:700;color:var(--strong);margin-bottom:2px}
+
+footer{text-align:center;color:var(--dim);font-size:14px;padding:30px 22px 50px;border-top:1px solid var(--border);max-width:900px;margin:0 auto}
+
+/* theme toggle */
+.theme-toggle{position:fixed;top:14px;right:16px;z-index:60;display:inline-flex;align-items:center;gap:7px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.22);transition:border-color .2s ease,background .25s ease,color .25s ease}
+.theme-toggle:hover{border-color:var(--blue)}
+.theme-toggle .tt-icon{width:16px;height:16px;display:block}
+.cw{color:var(--strong)}
+
+/* keep code cards dark in light theme, just keep header text legible */
+[data-theme="light"] .code-head{color:#8b97a8;border-bottom-color:#222a36}
+[data-theme="light"] .code-head .copy{color:#9aa6b6;border-color:#2c3543}
+[data-theme="light"] .adv{color:#8a5a00;background:#fff4d6;border-color:#e6c98a}
+
+@media(max-width:640px){
+  .compare{grid-template-columns:1fr}
+  body{font-size:16px}
+  .theme-toggle{top:10px;right:10px;padding:6px 11px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light and dark theme">
+  <svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+  <span class="tt-text">Light</span>
+</button>
+<header class="hero">
+  <span class="tag">Parts 42–47 · OOP Master Flow</span>
+  <h1>OOP — the master flow<br>from <em>zero</em> to the <em>four pillars</em></h1>
+  <p>Everything about Object-Oriented Programming, in one connected picture: the journey, the why, classes and objects to bedrock, and the four pillars — encapsulation, inheritance, polymorphism, and abstraction. Simple words. Every claim shown in code.</p>
+</header>
+<main>
+<section>
+  <h2><span class="step-num">1</span> Your journey so far · Parts 1 → 41</h2>
+  <p class="sub">Each block = a group of parts. Each one solved one new problem.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    F["FOUNDATIONS · Parts 1–16<br/>write code · data types · conditions · loops"]
+    DS["DATA STRUCTURES · Parts 17–23<br/>list · tuple · set · dict"]
+    FN["FUNCTIONS = PROCEDURAL · Parts 24–28<br/>organize code as reusable actions"]
+    PS["PROJECT SKILLS · Parts 29–41<br/>modules · errors · files · debug · log"]
+    OOP["OOP STARTS · Part 42 →<br/>organize code around objects"]
+    F --> DS --> FN --> PS --> OOP
+    classDef base fill:#161b22,stroke:#33415a,color:#cdd6e0;
+    classDef proc fill:#11211a,stroke:#51cf66,stroke-width:2px,color:#9be7ab;
+    classDef oop fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    class F,DS,PS base;
+    class FN proc;
+    class OOP oop;
+    </div>
+    <div class="cap">Five stages. We finished four. Stage five — OOP — starts now. (Each stage, part by part, below.)</div>
+  </div>
+
+  <h3 style="margin-top:28px">Every part, one line each</h3>
+  <p class="sub">The same road, part by part — the journey you have already finished.</p>
+
+  <div class="stage">Foundations <span class="r">Parts 1–16</span></div>
+  <div class="pgrid">
+    <div class="pcard"><span class="pn">1</span>Why Python · AI era</div>
+    <div class="pcard"><span class="pn">2</span>Install &amp; setup</div>
+    <div class="pcard"><span class="pn">3</span>Python history</div>
+    <div class="pcard"><span class="pn">4</span>What you installed</div>
+    <div class="pcard"><span class="pn">5</span>Your first code</div>
+    <div class="pcard"><span class="pn">6</span>How Python runs code</div>
+    <div class="pcard"><span class="pn">7</span>Memory · stack &amp; heap</div>
+    <div class="pcard"><span class="pn">8</span>Variables = objects</div>
+    <div class="pcard"><span class="pn">9</span>Numbers · int, float</div>
+    <div class="pcard"><span class="pn">10</span>Strings · text</div>
+    <div class="pcard"><span class="pn">11</span>Booleans &amp; compare</div>
+    <div class="pcard"><span class="pn">12</span>Logic &amp; truthiness</div>
+    <div class="pcard"><span class="pn">13</span>if / else</div>
+    <div class="pcard"><span class="pn">14</span>Pro if patterns</div>
+    <div class="pcard"><span class="pn">15</span>while loops</div>
+    <div class="pcard"><span class="pn">16</span>for loops</div>
+  </div>
+
+  <div class="stage">Data structures <span class="r">Parts 17–23</span></div>
+  <div class="pgrid">
+    <div class="pcard"><span class="pn">17</span>Lists · part 1</div>
+    <div class="pcard"><span class="pn">18</span>Lists · part 2</div>
+    <div class="pcard"><span class="pn">19</span>Tuples &amp; unpacking</div>
+    <div class="pcard"><span class="pn">20</span>Sets</div>
+    <div class="pcard"><span class="pn">21</span>Dicts · part 1</div>
+    <div class="pcard"><span class="pn">22</span>Dicts · part 2</div>
+    <div class="pcard"><span class="pn">23</span>Comprehensions</div>
+  </div>
+
+  <div class="stage proc">Functions = Procedural <span class="r">Parts 24–28</span></div>
+  <div class="pgrid">
+    <div class="pcard proc"><span class="pn">24</span>Functions · part 1</div>
+    <div class="pcard proc"><span class="pn">25</span>Functions · part 2</div>
+    <div class="pcard proc"><span class="pn">26</span>Recursion</div>
+    <div class="pcard proc"><span class="pn">27</span>Memoization</div>
+    <div class="pcard proc"><span class="pn">28</span>Lambda · map · filter</div>
+  </div>
+
+  <div class="stage">Project skills <span class="r">Parts 29–41</span></div>
+  <div class="pgrid">
+    <div class="pcard"><span class="pn">29</span>Modules &amp; imports</div>
+    <div class="pcard"><span class="pn">30</span>pip &amp; APIs</div>
+    <div class="pcard"><span class="pn">31</span>Virtual environments</div>
+    <div class="pcard"><span class="pn">32</span>Publish to PyPI</div>
+    <div class="pcard"><span class="pn">33</span>Errors · part 1</div>
+    <div class="pcard"><span class="pn">34</span>Errors · part 2</div>
+    <div class="pcard"><span class="pn">35</span>Errors · part 3</div>
+    <div class="pcard"><span class="pn">36</span>Files · part 1</div>
+    <div class="pcard"><span class="pn">37</span>Files · part 2</div>
+    <div class="pcard"><span class="pn">38</span>JSON · CSV</div>
+    <div class="pcard"><span class="pn">39</span>AI-era file formats</div>
+    <div class="pcard"><span class="pn">40</span>Debugging</div>
+    <div class="pcard"><span class="pn">41</span>Logging</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-num">2</span> Big code needs order → two roads</h2>
+  <p class="sub">When code grows big, Python gives two ways to organize it.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    BIG["Code grew big and messy"] --> Q{"How to ORGANIZE?"}
+    Q -->|Road 1| R1["FUNCTIONS<br/>Procedural · reusable actions"]
+    Q -->|Road 2| R2["CLASSES<br/>Object-Oriented Programming"]
+    classDef big fill:#161b22,stroke:#33415a,color:#cdd6e0;
+    classDef q fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef proc fill:#11211a,stroke:#51cf66,stroke-width:2px,color:#9be7ab;
+    classDef oop fill:#1a2030,stroke:#4dabf7,stroke-width:2px,color:#8ec4ff;
+    class BIG big;
+    class Q q;
+    class R1 proc;
+    class R2 oop;
+    </div>
+    <div class="cap">Road 1 = Parts 24–28 (done). Road 2 = OOP (now).</div>
+  </div>
+  <div class="bigbox blue">
+    <div class="label">One important thing</div>
+    <p class="big">Functions only <span class="hi-g">organize</span> code.<br>OOP does that too — but it is <span class="hi-b">much more</span>: a whole new way to model real things, each with its own data, actions and rules.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-num">3</span> Why the word "Procedural"?</h2>
+  <p class="sub">Hard word, simple meaning.</p>
+  <p><strong>Procedure</strong> = a set of step-by-step actions (like a recipe). So in Road 1 the program is built around <span class="hi-g">actions</span>. Data just travels into functions.</p>
+  <div class="tnote">📘 <b>For your exam:</b> Python is <b>not</b> "only procedural." It is a <b>multi-paradigm</b> language — it supports procedural, object-oriented and functional styles. "Procedural" is a <b>style</b>, not the whole language.</div>
+  <div class="bigbox blue">
+    <div class="label">Hold this difference</div>
+    <p class="big">Procedural = built around <span class="hi-g">actions</span>.<br>OOP = built around <span class="hi-b">things (objects)</span> that carry their own actions.</p>
+  </div>
+</section>
+<section>
+  <h2><span class="step-num">4</span> So what exactly is a class?</h2>
+  <p class="sub">Before we ask "why" — first, what is this word?</p>
+  <p>So far we built everything with <strong>functions</strong>. For bigger programs Python gives us a second tool: the <span class="hi">class</span>. The word sounds scary, so let's remove the fear first.</p>
+  <p><strong>class</strong> is <span class="hi">not</span> a Python invention. It is a <strong>Computer Science</strong> word, older than Python — from the language <a href="https://en.wikipedia.org/wiki/Simula" target="_blank" rel="noopener">Simula</a> in <strong>1967</strong>. It simply means <strong>"a kind / a category of thing."</strong> Java and C++ have classes too — Python only <strong>borrowed</strong> the idea.</p>
+  <p>A class lets you build your <strong>own kind of thing</strong> that can hold its <span class="hi-b">data</span>, its <span class="hi-g">actions</span>, and its <span class="hi">rules</span> together under <strong>one name</strong>.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    CL["class BankAccount<br/>one named kind of thing"] --> D["DATA<br/>owner · balance"]
+    CL --> A["ACTIONS<br/>deposit · withdraw"]
+    CL --> R["RULES<br/>never below 0"]
+    classDef cl fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef d fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef a fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    classDef r fill:#2a1416,stroke:#ff6b6b,color:#ffb3b3;
+    class CL cl;
+    class D d;
+    class A a;
+    class R r;
+    </div>
+    <div class="cap">One class holds data, actions and rules together as a single named unit.</div>
+  </div>
+  <div class="tnote">⚠ <b>You'll hear many definitions:</b> "a class is a blueprint," "a template," "a real-world thing." These are <b>hints, not the answer</b>. The precise, provable truth — coming up in a few steps — is simpler: <b>a class lets you create your own data type</b>, one Python treats exactly like <code>int</code>, <code>str</code> or <code>list</code>.</div>
+  <div class="tnote">📘 <b>Textbook word (preview):</b> a custom type like this — data bundled with the operations on it — is the start of what books call an <b>Abstract Data Type (ADT)</b>. We'll see <em>why</em> it's called "abstract" once we hide the internals behind methods (§21).</div>
+  <div class="bigbox blue">
+    <div class="label">So the next question is…</div>
+    <p class="big">We already have functions. <span class="hi">Why</span> do we even need this new "kind of thing"?</p>
+  </div>
+</section>
+<section>
+  <h2><span class="step-num">5</span> So why do we need classes?</h2>
+  <p class="sub">Functions are great — but they have one big pain.</p>
+  <p>A function is a <strong>machine</strong>: input → output → then it <strong>forgets everything</strong>. It keeps no memory between calls. The secret is <em>where</em> the <code>= 0</code> runs:</p>
+  <div class="compare">
+    <div class="cc bad">
+      <div class="h">✗ Function — forgets every call</div>
+      <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code><span class="kw">def</span> <span class="fn">deposit</span>(amount):
+    balance = 0           <span class="cmt"># re-made as 0 EVERY call</span>
+    balance += amount
+    <span class="kw">return</span> balance
+
+<span class="builtin">print</span>(<span class="fn">deposit</span>(500))   <span class="cmt"># 500</span>
+<span class="builtin">print</span>(<span class="fn">deposit</span>(500))   <span class="cmt"># 500 ← forgot the last one!</span></code></pre></div>
+    </div>
+    <div class="cc good">
+      <div class="h">✓ Object — remembers</div>
+      <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Account</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.balance = 0  <span class="cmt"># runs ONCE, at creation</span>
+
+    <span class="kw">def</span> <span class="fn">deposit</span>(self, amount):
+        self.balance += amount   <span class="cmt"># updates stored value</span>
+        <span class="kw">return</span> self.balance
+
+acc = <span class="fn">Account</span>()
+<span class="builtin">print</span>(acc.<span class="fn">deposit</span>(500))  <span class="cmt"># 500</span>
+<span class="builtin">print</span>(acc.<span class="fn">deposit</span>(500))  <span class="cmt"># 1000 ← remembered!</span></code></pre></div>
+    </div>
+  </div>
+  <p class="sub" style="text-align:center;font-style:italic;margin:-2px 0 6px">Same <code>= 0</code> — but in the function it re-runs <b>every call</b> (reset). In the object, <code>__init__</code> runs <b>once</b>; after that the balance lives inside <code>acc</code> and survives.</p>
+  <p>That is the first reason for a class: an object <strong>keeps its own data alive</strong>. There is a second reason too — its data, actions and rules all stay <strong>together and protected</strong>.</p>
+  <div class="bigbox blue">
+    <div class="label">The spine of all software</div>
+    <p class="big">Every real thing = <span class="hi-b">DATA</span> + <span class="hi-g">ACTIONS</span> + <span class="hi">RULES</span>, kept together.<br><span style="font-size:15px;font-weight:500;color:var(--muted)">A bank account = balance (data) + deposit / withdraw (actions) + "never go below 0" (rule).</span></p>
+  </div>
+  <p>Functions keep these three <strong>apart</strong>, and nothing enforces the rule. Compare:</p>
+  <div class="compare">
+    <div class="cc bad">
+      <div class="h">✗ Functions only (procedural)</div>
+      <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code><span class="cmt"># DATA sits loose, on its own</span>
+balance = 1000
+
+<span class="cmt"># ACTIONS sit elsewhere, separate</span>
+<span class="kw">def</span> <span class="fn">deposit</span>(bal, amount):
+    <span class="kw">return</span> bal + amount
+
+<span class="kw">def</span> <span class="fn">withdraw</span>(bal, amount):
+    <span class="kw">return</span> bal - amount
+
+<span class="cmt"># carry balance in &amp; out — it won't remember</span>
+balance = <span class="fn">deposit</span>(balance, 500)
+balance = <span class="fn">withdraw</span>(balance, 2000)
+
+<span class="cmt"># NOTHING protects the data:</span>
+balance = -9999      <span class="cmt"># allowed</span>
+balance = <span class="str">"oops"</span>     <span class="cmt"># allowed!</span></code></pre></div>
+    </div>
+    <div class="cc good">
+      <div class="h">✓ With a class</div>
+      <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">BankAccount</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance):
+        self.balance = balance    <span class="cmt"># DATA inside</span>
+
+    <span class="kw">def</span> <span class="fn">deposit</span>(self, amount):    <span class="cmt"># ACTION with data</span>
+        self.balance += amount
+
+    <span class="kw">def</span> <span class="fn">withdraw</span>(self, amount):
+        <span class="kw">if</span> amount &gt; self.balance:  <span class="cmt"># RULE built in</span>
+            <span class="kw">raise</span> <span class="builtin">ValueError</span>(<span class="str">"Not enough money"</span>)
+        self.balance -= amount
+
+acc = <span class="fn">BankAccount</span>(1000)
+acc.<span class="fn">deposit</span>(500)         <span class="cmt"># action lives with data</span>
+acc.<span class="fn">withdraw</span>(9000)       <span class="cmt"># blocked by the rule ✋</span></code></pre></div>
+    </div>
+  </div>
+  <p class="sub" style="text-align:center;font-style:italic;margin:-2px 0 6px">Left: data, actions and rules scattered — nothing is guarded.&nbsp;&nbsp;Right: all three bundled into ONE safe thing, rule enforced.</p>
+  <div class="bigbox blue">
+    <div class="label">The pain of functions, in one line</div>
+    <p class="big">A function only ever <span class="hi-g">acts on</span> types that already exist — <code>int</code>, <code>str</code>, <code>list</code>. It can never <strong>add a new one</strong>.<br>A function gives you a <span class="hi-g">verb</span> (an action); only a <span class="hi">class</span> can give you a new <span class="hi-b">noun</span> — a brand-new data type.</p>
+  </div>
+</section>
+<section>
+  <h2><span class="step-num">6</span> First — object vs type vs data type</h2>
+  <p class="sub">This is the exact spot students get lost. Let's settle three words for good: <b>object</b>, <b>type</b>, <b>data type</b>.</p>
+  <p>Back in Part 8 we proved a rule that never breaks: <strong>every object is exactly three things</strong> — an <span class="hi-p">identity</span>, a <span class="hi">type</span>, and a <span class="hi-b">value</span>. The <span class="hi-g">methods</span> are <strong>not</strong> a fourth part of the object. They live <em>inside the type</em> — written once, shared by every object of that type.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    OBJ["ONE OBJECT<br/>e.g. nums = 1, 2, 3<br/>— an object is ALWAYS these 3 —"]
+    OBJ --> ID["① IDENTITY<br/>which one · where in memory<br/>id(nums)"]
+    OBJ --> TY["② TYPE<br/>what kind is it?<br/>type(nums) → list"]
+    OBJ --> VA["③ VALUE<br/>the contents<br/>1, 2, 3"]
+    TY --> KIND["open the TYPE 'list'<br/>ONE shared copy behind every list"]
+    KIND --> METH["…the TYPE carries the OWN METHODS<br/>append · extend · insert · remove · pop<br/>clear · index · count · sort · reverse · copy"]
+    classDef obj fill:#161b22,stroke:#33415a,color:#cdd6e0;
+    classDef t fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef x fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef g fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    class OBJ obj;
+    class TY,KIND t;
+    class ID,VA x;
+    class METH g;
+    </div>
+    <div class="cap">Read it top-down. The <b>object</b> = identity + type + value. Open the <b>type</b> and you find "what kind" + the <b>methods</b> — shared, never copied into each object.</div>
+  </div>
+  <p><b>So the three words, settled once and for all:</b></p>
+  <ul>
+    <li><b>Object</b> = one real thing living in memory = <span class="hi-p">identity</span> + <span class="hi">type</span> + <span class="hi-b">value</span> (e.g. this one list, <code>[1, 2, 3]</code>).</li>
+    <li><b>Type</b> = the <em>"what kind?"</em> answer = the category that holds the <span class="hi-g">shared methods</span> (here, <code>list</code>).</li>
+    <li><b>Data type</b> = just another name for <b>type</b> — it stresses <em>"a kind of value + the operations you may do on it."</em> So <code>type = "what kind" = data type</code>. Same idea, three names.</li>
+  </ul>
+
+  <h3>Proof #1 — a <code>list</code> (mutable): its methods change it in place</h3>
+  <div class="code-wrap"><div class="code-head"><span>python · one object = 3 things · the type = the methods</span><button class="copy">Copy</button></div><pre><code>nums = [1, 2, 3]
+
+<span class="cmt"># ── an object is 3 things ─────────────────────</span>
+<span class="builtin">print</span>(<span class="builtin">type</span>(nums))    <span class="cmt"># &lt;class 'list'&gt;  ← ① TYPE      what kind</span>
+<span class="builtin">print</span>(<span class="builtin">id</span>(nums))      <span class="cmt"># 140412...       ← ② IDENTITY  which one / where</span>
+<span class="builtin">print</span>(nums)          <span class="cmt"># [1, 2, 3]       ← ③ VALUE     the contents</span>
+
+<span class="cmt"># ── the TYPE 'list' hands it ALL of these methods ──</span>
+nums.<span class="fn">append</span>(4)        <span class="cmt"># add one at the end</span>
+nums.<span class="fn">extend</span>([5, 6])   <span class="cmt"># add several at once</span>
+nums.<span class="fn">insert</span>(0, 99)    <span class="cmt"># add at a position</span>
+nums.<span class="fn">remove</span>(99)       <span class="cmt"># delete by value</span>
+nums.<span class="fn">pop</span>()            <span class="cmt"># remove &amp; return the last</span>
+nums.<span class="fn">index</span>(3)         <span class="cmt"># position of a value</span>
+nums.<span class="fn">count</span>(2)         <span class="cmt"># how many times it appears</span>
+nums.<span class="fn">sort</span>()           <span class="cmt"># reorder in place</span>
+nums.<span class="fn">reverse</span>()        <span class="cmt"># flip the order</span>
+nums.<span class="fn">copy</span>()           <span class="cmt"># a shallow copy</span>
+nums.<span class="fn">clear</span>()          <span class="cmt"># empty it</span>
+
+<span class="builtin">print</span>(<span class="builtin">dir</span>(nums))     <span class="cmt"># ← EVERY name the list type gives you</span></code></pre></div>
+
+  <h3>Proof #2 — a <code>str</code> (immutable): same 3 things, its <em>own</em> methods</h3>
+  <div class="code-wrap"><div class="code-head"><span>python · a different type → a different method set</span><button class="copy">Copy</button></div><pre><code>name = <span class="str">"Ada"</span>
+
+<span class="cmt"># ── same 3 things, a different type ───────────</span>
+<span class="builtin">print</span>(<span class="builtin">type</span>(name))    <span class="cmt"># &lt;class 'str'&gt;   ← ① TYPE      what kind</span>
+<span class="builtin">print</span>(<span class="builtin">id</span>(name))      <span class="cmt"># 140677...       ← ② IDENTITY  which one / where</span>
+<span class="builtin">print</span>(name)          <span class="cmt"># Ada             ← ③ VALUE     the contents</span>
+
+<span class="cmt"># ── the TYPE 'str' hands it a DIFFERENT set ───</span>
+name.<span class="fn">upper</span>()          <span class="cmt"># 'ADA'  → a NEW string (str is immutable)</span>
+name.<span class="fn">lower</span>()          <span class="cmt"># 'ada'</span>
+name.<span class="fn">strip</span>()          <span class="cmt"># trim spaces at both ends</span>
+name.<span class="fn">replace</span>(<span class="str">"A"</span>, <span class="str">"4"</span>) <span class="cmt"># '4da'</span>
+name.<span class="fn">split</span>(<span class="str">","</span>)      <span class="cmt"># break text into a list</span>
+<span class="str">"-"</span>.<span class="fn">join</span>([<span class="str">"x"</span>, <span class="str">"y"</span>]) <span class="cmt"># 'x-y'  glue a list into text</span>
+name.<span class="fn">startswith</span>(<span class="str">"A"</span>) <span class="cmt"># True</span>
+name.<span class="fn">find</span>(<span class="str">"d"</span>)       <span class="cmt"># 1  position of a substring</span>
+name.<span class="fn">count</span>(<span class="str">"a"</span>)      <span class="cmt"># 1</span>
+name.<span class="fn">isdigit</span>()        <span class="cmt"># False  is it all digits?</span>
+name.<span class="fn">capitalize</span>()     <span class="cmt"># 'Ada'</span>
+
+<span class="builtin">print</span>(<span class="builtin">dir</span>(name))     <span class="cmt"># ← EVERY name the str type gives you (~45)</span></code></pre></div>
+
+  <div class="compare">
+    <div class="cc">
+      <div class="h" style="color:var(--blue)">list · MUTABLE — methods change it in place</div>
+      <div class="chips">
+        <span class="chip">append</span><span class="chip">extend</span><span class="chip">insert</span><span class="chip">remove</span><span class="chip">pop</span><span class="chip">clear</span><span class="chip">index</span><span class="chip">count</span><span class="chip">sort</span><span class="chip">reverse</span><span class="chip">copy</span>
+      </div>
+    </div>
+    <div class="cc">
+      <div class="h" style="color:var(--purple)">str · IMMUTABLE — methods return a NEW string</div>
+      <div class="chips">
+        <span class="chip">upper</span><span class="chip">lower</span><span class="chip">strip</span><span class="chip">lstrip</span><span class="chip">rstrip</span><span class="chip">split</span><span class="chip">join</span><span class="chip">replace</span><span class="chip">find</span><span class="chip">index</span><span class="chip">count</span><span class="chip">startswith</span><span class="chip">endswith</span><span class="chip">capitalize</span><span class="chip">title</span><span class="chip">format</span><span class="chip">isdigit</span><span class="chip">isalpha</span><span class="chip">isspace</span><span class="chip">encode</span><span class="chip">zfill</span><span class="chip">center</span><span class="chip you">…dir() for all</span>
+      </div>
+    </div>
+  </div>
+  <div class="tnote">🔑 <b>The click moment:</b> a <code>list</code> and a <code>str</code> are two <b>different types</b>, so they carry <b>different method sets</b> — yet <b>both</b> get their methods from their <b>type</b>, never storing a private copy inside each object. Say it in one breath: <b>the object holds identity + type + value; the methods live in the type.</b> <code>dir(x)</code> always prints the full menu a type offers.</div>
+  <div class="bigbox yellow">
+    <div class="label">★ So what must OUR own type produce?</div>
+    <p class="big">Exactly the same: objects with their own <span class="hi">type</span>, <span class="hi-p">identity</span> and <span class="hi-b">value</span> — plus the <span class="hi-g">methods</span> we add.<br><span style="font-size:15px;font-weight:500;color:var(--muted)">That is the whole job of <code>class</code>. (Even an <em>empty</em> class hands you real objects with type + identity + value.)</span></p>
+  </div>
+</section>
+<section>
+  <h2><span class="step-num">7</span> How to build one — in 4 tiny steps</h2>
+  <p class="sub">We grow the class one line at a time. Nothing magic.</p>
+  <div class="buildstep"><div class="bn">1</div><div class="bc"><div class="bt">Name the new kind of thing</div><code>class BankAccount:</code> — tell Python "a new type is coming."</div></div>
+  <div class="buildstep"><div class="bn">2</div><div class="bc"><div class="bt"><code>__init__</code> — give each one its starting data</div>Runs <strong>automatically</strong> the moment an object is made, and fills in its data. <span style="color:var(--dim)">(Python actually creates the empty object one step earlier, via <code>__new__</code> — but you rarely touch it, so we unpack it in §11.)</span></div></div>
+  <div class="buildstep"><div class="bn">3</div><div class="bc"><div class="bt"><code>self</code> — means "this particular object"</div>So each account stores its <em>own</em> owner and balance, never mixed with others.</div></div>
+  <div class="buildstep"><div class="bn">4</div><div class="bc"><div class="bt">Methods — the actions, with the rule inside</div>Functions written <strong>inside</strong> the class. The rule ("never below 0") lives right here.</div></div>
+  <div class="code-wrap"><div class="code-head"><span>python · the whole thing, put together</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">BankAccount</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, owner, balance):
+        self.owner = owner            <span class="cmt"># data</span>
+        self.balance = balance        <span class="cmt"># data</span>
+
+    <span class="kw">def</span> <span class="fn">deposit</span>(self, amount):        <span class="cmt"># action</span>
+        self.balance += amount
+
+    <span class="kw">def</span> <span class="fn">withdraw</span>(self, amount):       <span class="cmt"># action + rule</span>
+        <span class="kw">if</span> amount &gt; self.balance:
+            <span class="kw">raise</span> <span class="builtin">ValueError</span>(<span class="str">"Not enough money"</span>)
+        self.balance -= amount
+
+acc = <span class="fn">BankAccount</span>(<span class="str">"Alice"</span>, 5000)   <span class="cmt"># __init__ runs here, automatically</span>
+acc.<span class="fn">deposit</span>(500)
+<span class="builtin">print</span>(acc.owner, acc.balance)        <span class="cmt"># Alice 5500</span></code></pre></div>
+  <div class="tnote">💡 <b>Small but important:</b> people call <code>__init__</code> the "constructor." It is really the <b>setup / initializer</b> — the object already exists when it runs. (Full reason in §11.)</div>
+</section>
+<section>
+  <h2><span class="step-num">8</span> The reveal: you just made your OWN data type</h2>
+  <p class="sub">Now the big idea lands — because you have already seen it work.</p>
+  <p>Ask Python what <code>acc</code> is. It answers just like it does for a list:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · proof</span><button class="copy">Copy</button></div><pre><code><span class="builtin">print</span>(<span class="builtin">type</span>([1, 2, 3]))   <span class="cmt"># &lt;class 'list'&gt;</span>
+<span class="builtin">print</span>(<span class="builtin">type</span>(acc))         <span class="cmt"># &lt;class 'BankAccount'&gt;  &larr; YOUR type, equally real</span></code></pre></div>
+  <p>Python gave you general types. With <code>class</code> you add your <strong>own</strong> — they stand side by side:</p>
+  <div class="chips">
+    <span class="chip">int</span><span class="chip">str</span><span class="chip">list</span><span class="chip">dict</span><span class="chip you">BankAccount &larr; you made this</span><span class="chip you">Message &larr; you made this</span>
+  </div>
+  <div class="bigbox yellow">
+    <div class="label">★ The one mental model to remember</div>
+    <p class="big">When you see <code>class</code>, do not think "blueprint."<br>Think: <span class="hi">"I am teaching Python a new data type."</span><br>Python knew <code>int</code>, <code>str</code>, <code>list</code>. Now it also knows my <code>BankAccount</code>.</p>
+  </div>
+  <p>This is true even for an <strong>empty</strong> class — with zero methods written, Python still registers a real type and hands you real objects carrying <span class="hi">type</span> + <span class="hi-p">identity</span> + <span class="hi-b">value</span>:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · even an empty class is a real type</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Empty</span>:
+    <span class="kw">pass</span>
+
+e = <span class="fn">Empty</span>()
+<span class="builtin">print</span>(<span class="builtin">type</span>(e))   <span class="cmt"># &lt;class 'Empty'&gt;   ← a real type — nothing written inside</span>
+<span class="builtin">print</span>(<span class="builtin">id</span>(e))     <span class="cmt"># 140...           ← real identity</span>
+<span class="cmt"># the object itself is the value — and Python already gave it default methods (__repr__ ...)</span></code></pre></div>
+  <h3>The same idea, in the AI world</h3>
+  <p>An OpenAI chat message is a <code>role</code> + <code>content</code>. A loose <code>dict</code> lets typos slip in; your own <code>Message</code> type gives it a fixed shape:</p>
+  <div class="compare">
+    <div class="cc bad">
+      <div class="h">✗ loose dict</div>
+      <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code>msg = {<span class="str">"rol"</span>: <span class="str">"user"</span>,      <span class="cmt"># typo</span>
+       <span class="str">"contnet"</span>: <span class="str">"hi"</span>}   <span class="cmt"># typo — breaks later</span></code></pre></div>
+    </div>
+    <div class="cc good">
+      <div class="h">✓ your own type</div>
+      <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Message</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, role, content):
+        self.role = role
+        self.content = content</code></pre></div>
+    </div>
+  </div>
+</section>
+<section>
+  <h2><span class="step-num">9</span> Class vs Object — the design vs the real thing</h2>
+  <p class="sub">You already know this from <code>list</code>.</p>
+  <p><code>list</code> is the <strong>type</strong> (the idea). <code>[1, 2, 3]</code> is a <strong>real list</strong> you can use — an <span class="hi-p">object</span>. Your class works the same way: the class is the design; each one you make is an object with its own data.</p>
+  <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code>acc1 = <span class="fn">BankAccount</span>(<span class="str">"Alice"</span>, 5000)   <span class="cmt"># object 1 — its own data</span>
+acc2 = <span class="fn">BankAccount</span>(<span class="str">"Ravi"</span>, 2000)    <span class="cmt"># object 2 — its own data</span>
+
+<span class="builtin">print</span>(acc1.owner)   <span class="cmt"># Alice</span>
+<span class="builtin">print</span>(acc2.owner)   <span class="cmt"># Ravi   &larr; never mixed up</span></code></pre></div>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    C["class BankAccount<br/>the DESIGN · written once"] --> O1["acc1 · own data<br/>Alice · 5000"]
+    C --> O2["acc2 · own data<br/>Ravi · 2000"]
+    O1 -->|share| M["same actions<br/>deposit · withdraw"]
+    O2 -->|share| M
+    classDef d fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef o fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef m fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    class C d;
+    class O1,O2 o;
+    class M m;
+    </div>
+    <div class="cap">One design → many objects. Each keeps its own data; all share the same actions.</div>
+  </div>
+  <div class="bigbox purple">
+    <div class="label">★ Remember</div>
+    <p class="big"><span class="hi">Class</span> = the design (written once).<br><span class="hi-p">Object</span> = a real thing built from it (made many times).</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-num">10</span> What really happens when you write <code>class</code></h2>
+  <p class="sub">Myth: "<code>class</code> is just a declaration." Truth: it is live code that <em>builds an object</em>.</p>
+  <p>When Python reaches a <code>class</code> block, it does <strong>not</strong> just "remember a template." It <strong>runs</strong> the indented lines top-to-bottom, gathers everything you defined into a little dictionary, and hands that to a built-in factory called <code>type</code>. That factory <strong>manufactures a class object</strong> and stores it under the name you chose. So <code>Dog</code> is a real object you just built — a <em>class object</em>.</p>
+
+  <div class="bigbox blue">
+    <div class="label">⚠ First untangle this — <code>type</code> wears TWO hats</div>
+    <p class="big">The same word <code>type</code> does two different jobs, and mixing them up is the whole confusion:<br>
+    • <span class="hi-b">ONE</span> argument → <code>type(rex)</code> <span class="hi-g">asks</span> "what kind is this?" → answers <code>Dog</code>.<br>
+    • <span class="hi-b">THREE</span> arguments → <code>type("Dog", (), {...})</code> <span class="hi">builds</span> a brand-new class.</p>
+  </div>
+
+  <h3>Hat 1 — three arguments: <span class="hi">build</span> a class</h3>
+  <p>These two snippets are <strong>exactly</strong> the same. The friendly <code>class</code> syntax on the left is just a shortcut for the factory call on the right:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · the class keyword is sugar for a type(...) call</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Dog</span>:              <span class="cmt"># the friendly way you always write</span>
+    legs = 4
+
+<span class="cmt"># ...Python quietly does THIS behind the scenes —</span>
+<span class="cmt"># it calls the `type` factory with three arguments:</span>
+Dog = <span class="builtin">type</span>(<span class="str">"Dog"</span>, (), {<span class="str">"legs"</span>: 4})</code></pre></div>
+  <p>Those three arguments are simply the three things every class needs:</p>
+  <div class="gloss">
+    <div class="gitem"><div class="t">"Dog"</div><div class="d">the <b>name</b> — what the class will be called</div></div>
+    <div class="gitem"><div class="t">()</div><div class="d">the <b>parents</b> — classes to inherit from (empty = none)</div></div>
+    <div class="gitem"><div class="t">{"legs": 4}</div><div class="d">the <b>body</b> — its attributes &amp; methods, as a dict</div></div>
+  </div>
+
+  <h3>Hat 2 — one argument: <span class="hi-g">ask</span> what made it (and prove it's all objects)</h3>
+  <p>Now ask the <em>other</em> question. Since <code>Dog</code> was stamped out by the <code>type</code> factory, asking its kind returns <code>type</code>. Every line below is something you can run and check for yourself:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · proof you can run yourself</span><button class="copy">Copy</button></div><pre><code>rex = <span class="fn">Dog</span>()
+
+<span class="cmt"># ── ask "what kind?" — climb one floor up each time ──</span>
+<span class="builtin">print</span>(<span class="builtin">type</span>(rex))              <span class="cmt"># &lt;class 'Dog'&gt;    rex was made by Dog</span>
+<span class="builtin">print</span>(<span class="builtin">type</span>(Dog))              <span class="cmt"># &lt;class 'type'&gt;   Dog was made by type</span>
+<span class="builtin">print</span>(<span class="builtin">type</span>(<span class="builtin">int</span>))              <span class="cmt"># &lt;class 'type'&gt;   int, str, list… all made by type</span>
+<span class="builtin">print</span>(<span class="builtin">type</span>(<span class="builtin">type</span>))             <span class="cmt"># &lt;class 'type'&gt;   type is made by type — the top floor</span>
+
+<span class="cmt"># ── prove a class really IS an object ──</span>
+<span class="builtin">print</span>(<span class="builtin">isinstance</span>(Dog, <span class="builtin">type</span>))      <span class="cmt"># True   Dog is an instance of type</span>
+<span class="builtin">print</span>(<span class="builtin">isinstance</span>(<span class="builtin">type</span>, <span class="builtin">object</span>))   <span class="cmt"># True   even type is a plain object</span>
+
+<span class="cmt"># ── prove 'class' is only sugar: both build the same thing ──</span>
+<span class="kw">class</span> <span class="fn">A</span>: x = 1
+A2 = <span class="builtin">type</span>(<span class="str">"A2"</span>, (), {<span class="str">"x"</span>: 1})
+<span class="builtin">print</span>(<span class="fn">A</span>().x, <span class="fn">A2</span>().x)           <span class="cmt"># 1 1   identical behaviour</span></code></pre></div>
+
+  <p><b>Now see it as two simple pictures.</b></p>
+  <p><b>1 · Two ways, one result.</b> <code>class</code> is only a human-readable shortcut. Python rewrites it into a plain <code>type(...)</code> call — and both hand you the <em>exact same</em> class object:</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    H["you write it as:<br/>class Dog: legs = 4<br/>— human-readable sugar —"]
+    H -->|"Python rewrites it into"| F["Dog = type('Dog', (), attrs)<br/>— a plain factory call —"]
+    F -->|"returns"| OBJ["the class object Dog<br/>your new data type — an OBJECT"]
+    classDef b fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef t fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    class H,F b;
+    class OBJ t;
+    </div>
+    <div class="cap"><code>attrs</code> = the class body as a dict, e.g. <code>{"legs": 4}</code>. So <code>class Dog:</code> and <code>type("Dog", (), {"legs": 4})</code> give you one and the same <code>Dog</code>.</div>
+  </div>
+  <p><b>2 · Two floors of one factory.</b> <code>type</code> makes classes; classes make objects. The punchline: <code>type</code> <em>and</em> every class are themselves objects too:</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    TYPE["type<br/>Python's built-in class-factory<br/>(itself an object)"]
+    TYPE -->|"stamps out classes"| KLASS["Dog · int · str · list<br/>classes = data types<br/>each one is an OBJECT"]
+    KLASS -->|"stamp out instances"| INST["rex · 42 · 'hi' · a list<br/>ordinary objects"]
+    classDef d fill:#1c1430,stroke:#b197fc,stroke-width:2px,color:#cbb6ff;
+    classDef t fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef g fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    class TYPE d;
+    class KLASS t;
+    class INST g;
+    </div>
+    <div class="cap">Top → bottom = "who builds whom". To climb back <b>up</b> a floor, ask <code>type(x)</code>. Everything on every floor — <code>type</code>, the classes, and the instances — is an object.</div>
+  </div>
+
+  <div class="tnote">🍪 <b>The analogy that makes it click:</b> a <b>class</b> is a cookie-cutter that stamps out cookies (objects). But cutters must be made too — by a cutter-making machine. <code>type</code> <b>is that machine</b>: it stamps out classes. So <code>type</code> makes classes, classes make objects — two floors of one factory. Writing <code>class Dog:</code> just tells the machine "make me a new cutter named Dog."</div>
+  <div class="tnote">📘 <b>Why this matters:</b> because a class is a normal object, you can put it in a variable, pass it to a function, build one on the fly, or let a <b>decorator / metaclass</b> tweak it before use (§30). Nothing about <code>class</code> is magic — it is a function call with nicer syntax.</div>
+</section>
+<section>
+  <h2><span class="step-num">11</span> <code>__init__</code> vs <code>__new__</code> — initializer, not constructor</h2>
+  <p class="sub">The most common interview "gotcha."</p>
+  <p>People call <code>__init__</code> the constructor. Not quite. <code>__new__</code> <strong>creates</strong> the empty object; <code>__init__</code> only <strong>fills</strong> the object that already exists.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart LR
+    A["you create an object"] --> N["__new__<br/>makes the empty object"]
+    N --> I["__init__<br/>fills owner and balance"]
+    I --> R["ready to use"]
+    classDef s fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef d fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    class A,N,I s;
+    class R d;
+    </div>
+    <div class="cap">__new__ builds it · __init__ sets it up. You almost always write only __init__.</div>
+  </div>
+  <div class="tnote">📘 <b>Proof:</b> <code>__init__</code> must return <code>None</code> and it receives an already-built <code>self</code>. A true constructor returns the new object — that is <code>__new__</code>'s job.</div>
+</section>
+<section>
+  <h2><span class="step-num">12</span> <code>self</code> is not magic, and not a keyword</h2>
+  <p class="sub">Once you see this, <code>self</code> stops being scary forever.</p>
+  <p>When you write <code>acc.deposit(500)</code>, Python quietly turns it into <code>BankAccount.deposit(acc, 500)</code>. The object simply becomes the <strong>first argument</strong>. We name that first argument <code>self</code> — by convention, not by law.</p>
+  <div class="code-wrap"><div class="code-head"><span>python · these two lines do the same thing</span><button class="copy">Copy</button></div><pre><code>acc.<span class="fn">deposit</span>(500)              <span class="cmt"># the normal way</span>
+<span class="fn">BankAccount</span>.<span class="fn">deposit</span>(acc, 500)   <span class="cmt"># exactly the same call</span>
+
+<span class="cmt"># "self" is only a name. This even works (please don't):</span>
+<span class="kw">def</span> <span class="fn">deposit</span>(this, amount): ...    <span class="cmt"># still valid</span></code></pre></div>
+  <div class="tnote">📘 <b>Why explicit?</b> Python's rule is "explicit is better than implicit." Other languages hide <code>this</code>; Python shows it, so there is never any doubt which object you are touching.</div>
+</section>
+<section>
+  <h2><span class="step-num">13</span> Instance data vs class data (and a famous trap)</h2>
+  <p class="sub">Where exactly does an attribute live?</p>
+  <p>Data set with <code>self.x = ...</code> lives on <strong>that one object</strong>. Data set directly in the class body is <strong>shared by all</strong> objects.</p>
+  <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Dog</span>:
+    species = <span class="str">"Canis"</span>          <span class="cmt"># class data — shared by all dogs</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name):
+        self.name = name        <span class="cmt"># instance data — one per dog</span>
+
+a, b = <span class="fn">Dog</span>(<span class="str">"Rex"</span>), <span class="fn">Dog</span>(<span class="str">"Bruno"</span>)
+<span class="builtin">print</span>(a.name, b.name)       <span class="cmt"># Rex Bruno   (different)</span>
+<span class="builtin">print</span>(a.species)            <span class="cmt"># Canis       (shared)</span></code></pre></div>
+  <div class="bigbox blue">
+    <div class="label">⚠ The trap (same bug family as Part 25's mutable default)</div>
+    <p class="big">A <span class="hi-b">mutable</span> class attribute is shared. <code>tricks = []</code> in the class body → every dog shares ONE list.<br>Fix: put per-object state in <code>__init__</code> → <code>self.tricks = []</code>.</p>
+  </div>
+</section>
+<section>
+  <h2><span class="step-num">14</span> Three kinds of methods — and why one isn't enough</h2>
+  <p class="sub">First clear up the word, then the real question: why did Python add <em>three</em> kinds when a normal one already works?</p>
+  <div class="tnote">📘 <b>Function vs method:</b> a <b>function</b> stands alone (<code>deposit(...)</code>); a <b>method</b> lives <em>inside a class</em> and is called <em>on</em> an object (<code>acc.deposit(...)</code>). Every method is a function — it just belongs to an object.</div>
+  <p>Why three, then? Because not every action needs the same things. Ask one question — <em>what does this function need to do its job?</em> — and the answer picks the kind:</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    Q["what does this function<br/>need to do its job?"] --> A["THIS account's data<br/>e.g. its own balance"]
+    Q --> B["the CLASS itself<br/>make a new one · a shared setting · a count"]
+    Q --> C["nothing special<br/>just a related helper"]
+    A --> AM["instance method<br/>def deposit(self, ...)"]
+    B --> BM["@classmethod<br/>def savings(cls, ...)"]
+    C --> CM["@staticmethod<br/>def is_valid_amount(...)"]
+    classDef q fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef x fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef m fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    class Q q;
+    class A,B,C x;
+    class AM,BM,CM m;
+    </div>
+    <div class="cap">The three kinds exist because a function may need this <b>object</b>, the whole <b>class</b>, or <b>neither</b>.</div>
+  </div>
+  <div class="code-wrap"><div class="code-head"><span>python · one BankAccount — all three kinds, and every reason to use a classmethod</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">BankAccount</span>:
+    bank_name = <span class="str">"OnePercent Bank"</span>     <span class="cmt"># class data — shared by EVERY account</span>
+    interest_rate = 5                  <span class="cmt"># class data — shared by EVERY account</span>
+    count = 0                          <span class="cmt"># class data — how many exist so far</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, owner, balance):
+        self.owner = owner             <span class="cmt"># instance data — one per account</span>
+        self.balance = balance
+        <span class="fn">BankAccount</span>.count += 1         <span class="cmt"># each new account bumps the shared counter</span>
+
+    <span class="cmt"># ── INSTANCE · needs THIS account (self) ──</span>
+    <span class="kw">def</span> <span class="fn">deposit</span>(self, amount):
+        self.balance += amount         <span class="cmt"># change ONE account's own data</span>
+
+    <span class="cmt"># ── CLASS · needs the class (cls), not one account ──</span>
+    <span class="builtin">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">savings</span>(cls, owner):           <span class="cmt"># reason 1: another DOOR to create one</span>
+        <span class="kw">return</span> cls(owner, 0)               <span class="cmt"># cls(...) == BankAccount(...) → new object</span>
+
+    <span class="builtin">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">from_record</span>(cls, line):        <span class="cmt"># reason 1: yet another door — "Alice,5000"</span>
+        owner, balance = line.split(<span class="str">","</span>)
+        <span class="kw">return</span> cls(owner, <span class="builtin">int</span>(balance))
+
+    <span class="builtin">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">set_interest_rate</span>(cls, rate):  <span class="cmt"># reason 2: a setting shared by ALL accounts</span>
+        cls.interest_rate = rate
+
+    <span class="builtin">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">total_accounts</span>(cls):           <span class="cmt"># reason 3: a fact about the WHOLE class</span>
+        <span class="kw">return</span> cls.count
+
+    <span class="cmt"># ── STATIC · needs neither self nor cls ──</span>
+    <span class="builtin">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">is_valid_amount</span>(amount):        <span class="cmt"># just numbers in → answer out</span>
+        <span class="kw">return</span> amount &gt; 0
+
+
+<span class="cmt"># ① create FIRST …</span>
+alice = <span class="fn">BankAccount</span>.<span class="fn">savings</span>(<span class="str">"Alice"</span>)   <span class="cmt"># classmethod opens a fresh account</span>
+<span class="cmt"># ② … THEN use</span>
+alice.<span class="fn">deposit</span>(500)                       <span class="cmt"># instance method needs an existing account</span>
+<span class="builtin">print</span>(alice.balance)                    <span class="cmt"># 500</span>
+
+<span class="fn">BankAccount</span>.<span class="fn">set_interest_rate</span>(7)         <span class="cmt"># affects EVERY account at once</span>
+<span class="builtin">print</span>(<span class="fn">BankAccount</span>.<span class="fn">total_accounts</span>())    <span class="cmt"># 1 — a fact about the class</span>
+<span class="fn">BankAccount</span>.<span class="fn">is_valid_amount</span>(500)          <span class="cmt"># True — no account needed</span></code></pre></div>
+  <table class="ctable">
+    <tr><th>The job is about…</th><th>Example</th><th>Use</th><th>First word</th></tr>
+    <tr><td><b>one</b> specific object</td><td><code>alice.deposit(500)</code></td><td>instance method</td><td><code>self</code></td></tr>
+    <tr><td><b>creating</b> an object — a new "door"</td><td><code>BankAccount.savings("Alice")</code></td><td>class method</td><td><code>cls</code></td></tr>
+    <tr><td>a setting shared by <b>all</b></td><td><code>BankAccount.set_interest_rate(7)</code></td><td>class method</td><td><code>cls</code></td></tr>
+    <tr><td>a fact about the <b>whole class</b></td><td><code>BankAccount.total_accounts()</code></td><td>class method</td><td><code>cls</code></td></tr>
+    <tr><td>just numbers in → answer out</td><td><code>BankAccount.is_valid_amount(500)</code></td><td>static method</td><td><em>none</em></td></tr>
+  </table>
+
+  <div class="bigbox blue">
+    <div class="label">🏦 Create FIRST, then use</div>
+    <p class="big">You can't deposit into an account that doesn't exist — <b>open</b> it first. Python forces the same order.</p>
+    <div class="code-wrap"><div class="code-head"><span>python</span><button class="copy">Copy</button></div><pre><code>alice.<span class="fn">deposit</span>(500)                       <span class="cmt"># ❌ NameError — no account yet</span>
+alice = <span class="fn">BankAccount</span>.<span class="fn">savings</span>(<span class="str">"Alice"</span>)   <span class="cmt"># ① open it → now it exists</span>
+alice.<span class="fn">deposit</span>(500)                       <span class="cmt"># ② now it works</span></code></pre></div>
+    <p><code>deposit</code> needs <code>self</code> — a real account. The <code>@classmethod</code> is the opening step (<code>cls</code>), so it needs no account yet.</p>
+  </div>
+
+  <div class="tnote">🎯 <b><code>self</code> / <code>cls</code> — written, never passed.</b> They come from <em>before the dot</em>: <code>BankAccount.savings("Alice")</code> runs as <code>savings(BankAccount, "Alice")</code> — the thing before the dot fills the first slot (just like <code>acc.deposit(500)</code> in §12).</div>
+
+  <div class="tnote">🔑 <b><code>()</code> = make a new one · <code>.</code> = reach into an existing one.</b> So <code>cls(owner, 0)</code> <em>builds</em> an account (it's just <code>BankAccount(...)</code>); <code>cls.interest_rate = rate</code> only <em>changes shared data</em> — the twin of <code>self.balance += amount</code>.</div>
+
+  <div class="tnote">🧠 <b>Hook:</b> <code>self</code> → <b>this one</b> account · <code>cls</code> → <b>the whole bank</b> · no first word → <b>a calculator</b> inside the class.</div>
+
+  <div class="tnote">🧩 <b>Three <u>kinds</u>, not more.</b> instance / class / static are the only ways a method binds — the list is complete. <b>Dunder</b> (<code>__str__</code>…), <b><code>@property</code></b>, <b><code>@abstractmethod</code></b> aren't a fourth kind — they're flavors on top, covered later (§22 · §28, §16 · §27, §21 · §31).</div>
+</section>
+
+<section>
+  <div class="bigbox purple">
+    <div class="label">🏁 Checkpoint — your tool is ready</div>
+    <p class="big">A <span class="hi">class</span> lets you create your own <span class="hi-b">data type</span>: a thing that keeps its own data, carries its own actions, guards its own rules — and <em>remembers</em>. One design, many objects. You have seen <em>what</em> it is, <em>how</em> to build it, and <em>what Python does</em> underneath.</p>
+  </div>
+  <p>But a tool by itself doesn't build a skyscraper — you need <strong>principles</strong> for using it well as your program grows huge. That is exactly what <span class="hi-p">OOP</span> is: a set of proven ideas for organizing classes so your app stays clean and <strong>scalable</strong>. We have forged the tool. Next, we pick it up and learn the four <b>pillars</b> that turn <em>"I can write a class"</em> into <em>"I can design a large, professional system."</em></p>
+  <div class="arc">
+    <div class="arccard"><div class="ap">DONE ✓</div><div class="an">The tool — class &amp; object</div></div>
+    <div class="arccard now"><div class="ap">NEXT →</div><div class="an">OOP — the 4 pillars</div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-num">15</span> So… what is "OOP"?</h2>
+  <p class="sub">Now we can answer the big word — and the order it all comes in.</p>
+  <p>When you build your program around such objects — things that carry their own data and actions — you are doing <strong>Object-Oriented Programming</strong>. So the order is simple, and this answers the common doubt "class first, or OOP first?":</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart LR
+    A["class<br/>the tool"] --> B["object<br/>real thing"] --> C["apply 4 ideas"] --> D["= OOP"]
+    classDef a fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef b fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef c fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    classDef d fill:#1c1430,stroke:#b197fc,stroke-width:2px,color:#cbb6ff;
+    class A a;
+    class B b;
+    class C c;
+    class D d;
+    </div>
+    <div class="cap">Class comes first. OOP is the bigger style you build on top of classes and objects.</div>
+  </div>
+  <p>"OOP" is not one thing — it is a <strong>general formula: four ideas (the pillars)</strong> you apply <em>on top of</em> classes and objects to keep code clean. Classes come first; OOP is the style built over them. You have already met the first pillar. We open all four next, with a graph and runnable code each.</p>
+  <div class="pillars">
+    <div class="pill p1"><div class="pt">Encapsulation</div><div class="tw">protect + hide</div><div class="pd">A wall around the data. Touch it only through methods — like the rule inside <code>withdraw</code>.</div></div>
+    <div class="pill p2"><div class="pt">Abstraction</div><div class="tw">simple surface</div><div class="pd">Hide the messy inside. You call <code>acc.deposit()</code> without knowing how it works within.</div></div>
+    <div class="pill p3"><div class="pt">Inheritance</div><div class="tw">reuse</div><div class="pd">Build a new type from an existing one — no copy-paste.</div></div>
+    <div class="pill p4"><div class="pt">Polymorphism</div><div class="tw">same call, many forms</div><div class="pd">Many types answer the same action their own way — like <code>len()</code> on a str, list or dict.</div></div>
+  </div>
+  <div class="tnote">🔌 <b>You have already seen this:</b> Python's own types do all four — <code>len()</code> works on many types (polymorphism), you use <code>list</code> without its C internals (abstraction), <code>bool</code> is built from <code>int</code> (inheritance). OOP is not new magic — it is what Python already does, now in your hands.</div>
+  <div class="tnote">🧭 <b>Two pillars go deeper:</b> Inheritance opens into its <b>5 types</b> and Python's take on <b>multiple inheritance</b> (§18); Polymorphism splits into <b>overriding vs overloading</b> (§20). Each comes right after its pillar.</div>
+</section>
+<section>
+  <h2><span class="step-num">16</span> Pillar 1 — Encapsulation</h2>
+  <p class="sub">Pain: anyone can reach in and break the data.</p>
+  <p>Our class had a rule inside <code>withdraw</code>. But nothing stops someone writing <code>acc.balance = -9999</code> <strong>directly</strong>, skipping the rule. So we <span class="hi-g">hide</span> the data and let people touch it only through safe methods.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart LR
+    U["outside code"] -->|allowed| M["methods<br/>deposit · withdraw"]
+    M --> D["_balance<br/>hidden data"]
+    U -.->|blocked| D
+    classDef u fill:#161b22,stroke:#33415a,color:#cdd6e0;
+    classDef m fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    classDef d fill:#2a1416,stroke:#ff6b6b,color:#ffb3b3;
+    class U u;
+    class M m;
+    class D d;
+    </div>
+    <div class="cap">The data sits behind a wall. The only doors are the methods.</div>
+  </div>
+  <p>So we do two things: <b>hide</b> the data (rename <code>balance</code> → <code>_balance</code>) and expose only <b>safe doors</b>. First, the way you already know — a plain method:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · a wall around the data</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">BankAccount</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance):
+        self._balance = balance        <span class="cmt"># _ means "internal — don't touch directly"</span>
+
+    <span class="kw">def</span> <span class="fn">withdraw</span>(self, amount):
+        <span class="kw">if</span> amount &gt; self._balance:
+            <span class="kw">raise</span> <span class="builtin">ValueError</span>(<span class="str">"Not enough money"</span>)
+        self._balance -= amount
+
+    <span class="kw">def</span> <span class="fn">get_balance</span>(self):            <span class="cmt"># a plain instance method — needs ()</span>
+        <span class="kw">return</span> self._balance
+
+acc = <span class="fn">BankAccount</span>(1000)
+acc.<span class="fn">withdraw</span>(200)
+<span class="builtin">print</span>(acc.<span class="fn">get_balance</span>())   <span class="cmt"># 800 — safe, but the () feels clunky</span></code></pre></div>
+
+  <h3>Meet <code>@property</code> — a method that looks like an attribute</h3>
+  <p>We would rather write <code>acc.balance</code> — like plain data — than call the <code>get_balance()</code> method we <b>just wrote above</b> (it's ours, not built in). That is exactly what <code>@property</code> gives you: a <b>method wearing the costume of an attribute</b>. You write <code>acc.balance</code> with <b>no parentheses</b>, but a method quietly runs underneath — so every <em>read</em> (and, with a <b>setter</b>, every <em>write</em>) can still be guarded. <span style="color:var(--dim)">(This is one of the "flavors" we flagged in §14 — underneath, it is still an instance method.)</span></p>
+  <div class="code-wrap"><div class="code-head"><span>python · read like data, write with a guard</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">BankAccount</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance):
+        self._balance = balance
+
+    <span class="builtin">@property</span>                     <span class="cmt"># READ:  acc.balance        (no parentheses)</span>
+    <span class="kw">def</span> <span class="fn">balance</span>(self):
+        <span class="kw">return</span> self._balance
+
+    <span class="builtin">@balance.setter</span>               <span class="cmt"># WRITE: acc.balance = 3000  (checked first)</span>
+    <span class="kw">def</span> <span class="fn">balance</span>(self, value):
+        <span class="kw">if</span> value &lt; 0:
+            <span class="kw">raise</span> <span class="builtin">ValueError</span>(<span class="str">"Balance cannot be negative"</span>)
+        self._balance = value
+
+acc = <span class="fn">BankAccount</span>(1000)
+<span class="builtin">print</span>(acc.balance)     <span class="cmt"># 1000 — reads like data, runs a method</span>
+acc.balance = 3000     <span class="cmt"># ✓ goes through the setter</span>
+acc.balance = -100     <span class="cmt"># ✗ ValueError — the wall holds</span></code></pre></div>
+  <div class="tnote">🍽️ <b>Like a display counter:</b> from outside you seem to just <em>grab</em> the item (an attribute); really a staff member hands it over through a controlled window (a method) — the ease of "just grab it" with the safety of "staff controls it." <span style="color:var(--dim)">(The <code>@</code> is a <b>decorator</b> — a label that changes how a method is used; full story in §25.)</span></div>
+  <div class="tnote">🔑 <b>The big win:</b> start with a plain public <code>self.balance</code>, then later upgrade to a guarded <code>@property</code> — and <b>no calling code changes</b>. <code>acc.balance</code> still works; only the protection is added underneath.</div>
+
+  <h3>Two rules that trip everyone up</h3>
+  <p>A property can also be <b>computed</b> from other fields. Watch the <b>name rule</b> and the <b>one-value rule</b>:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · one value in, unpack inside</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Person</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, first, last):
+        self.first = first
+        self.last  = last
+
+    <span class="builtin">@property</span>                        <span class="cmt"># READ:  p.full_name  (no parentheses)</span>
+    <span class="kw">def</span> <span class="fn">full_name</span>(self):
+        <span class="kw">return</span> <span class="str">f"{self.first} {self.last}"</span>   <span class="cmt"># built on the fly — nothing stored</span>
+
+    <span class="builtin">@full_name.setter</span>                <span class="cmt"># name MUST match the property → full_name</span>
+    <span class="kw">def</span> <span class="fn">full_name</span>(self, value):        <span class="cmt"># a setter always gets exactly ONE value</span>
+        self.first, self.last = value.<span class="fn">split</span>(<span class="str">" "</span>)   <span class="cmt"># split the one string into two</span>
+
+p = <span class="fn">Person</span>(<span class="str">"Ada"</span>, <span class="str">"Lovelace"</span>)
+<span class="builtin">print</span>(p.full_name)             <span class="cmt"># Ada Lovelace</span>
+p.full_name = <span class="str">"Grace Hopper"</span>     <span class="cmt"># one string in → becomes first + last</span></code></pre></div>
+  <div class="tnote">🧩 <b>Three rules to remember:</b> ① the setter's name <b>must match</b> the property → <code>@full_name.setter</code> (if it were <code>price</code>, it'd be <code>@price.setter</code>). ② A setter gets <b>exactly one value</b> — it's triggered by <code>name = value</code>. Need several? pass a tuple and unpack, or just use a normal method like <code>set_limits(low, high)</code> called with <code>()</code>. ③ Getter and setter are <b>both instance methods</b> (they carry <code>self</code>) — <code>@property</code> is only a costume over them.</div>
+  <div class="tnote">🚪 <b>Leave the setter out</b> → the property is <b>read-only</b>. Assigning to it (<code>p.full_name = "X"</code>) then raises <code>AttributeError</code>.</div>
+
+  <h3>The three access levels (by naming convention)</h3>
+  <p>Python has <strong>no</strong> <code>private</code> / <code>public</code> keyword. The <em>name</em> signals the intent:</p>
+  <table class="ctable">
+    <tr><th>Level</th><th>How you write it</th><th>What it means</th></tr>
+    <tr><td>public</td><td><code>balance</code></td><td>anyone may use it — the official API</td></tr>
+    <tr><td>protected</td><td><code>_balance</code></td><td>"internal, please don't touch" — a polite signal only</td></tr>
+    <tr><td>private</td><td><code>__balance</code></td><td>name-mangled to <code>_BankAccount__balance</code> — hidden, not locked</td></tr>
+  </table>
+  <div class="code-wrap"><div class="code-head"><span>python · proof — there is no true "private"</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Account</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.owner = <span class="str">"Alice"</span>     <span class="cmt"># public</span>
+        self._pin = 1234         <span class="cmt"># protected (convention)</span>
+        self.__secret = <span class="str">"x"</span>      <span class="cmt"># private (name-mangled)</span>
+
+a = <span class="fn">Account</span>()
+<span class="builtin">print</span>(a.owner)             <span class="cmt"># Alice        ✓</span>
+<span class="builtin">print</span>(a._pin)              <span class="cmt"># 1234         ✓ works, but you shouldn't</span>
+<span class="cmt"># print(a.__secret)        # AttributeError!</span>
+<span class="builtin">print</span>(a._Account__secret)  <span class="cmt"># 'x'          ← still reachable via the mangled name</span></code></pre></div>
+  <div class="tnote">📘 <b>Textbook word — encapsulation:</b> keep data and the rules that guard it together, and hide the inside.</div>
+  <div class="tnote">🐍 <b>Python's twist — there is no real "private":</b> one underscore <code>_balance</code> means "please don't touch." Two underscores <code>__balance</code> triggers <b>name-mangling</b> — Python renames it to <code>_BankAccount__balance</code>, a speed bump, not a lock. Python trusts you: here encapsulation is a clear signal, not a hard wall.</div>
+</section>
+<section>
+  <h2><span class="step-num">17</span> Pillar 2 — Inheritance</h2>
+  <p class="sub">Pain: two types share 90% of their code. Copy-paste is a trap.</p>
+  <p>A <code>SavingsAccount</code> <em>is a</em> <code>BankAccount</code> — plus a little extra. Instead of copying, the child <span class="hi-b">inherits</span> everything from the parent and adds only what is new.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    P["BankAccount · parent<br/>balance · deposit · withdraw"] --> C1["SavingsAccount<br/>+ add_interest"]
+    P --> C2["CurrentAccount<br/>+ overdraft"]
+    classDef p fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef c fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    class P p;
+    class C1,C2 c;
+    </div>
+    <div class="cap">Write the shared part once in the parent. Children get it for free.</div>
+  </div>
+  <div class="code-wrap"><div class="code-head"><span>python · reuse, do not copy</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">BankAccount</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance):
+        self.balance = balance
+    <span class="kw">def</span> <span class="fn">withdraw</span>(self, amount):
+        self.balance -= amount
+
+<span class="kw">class</span> <span class="fn">SavingsAccount</span>(<span class="fn">BankAccount</span>):    <span class="cmt"># inherits everything</span>
+    <span class="kw">def</span> <span class="fn">add_interest</span>(self):              <span class="cmt"># adds something new</span>
+        self.balance += self.balance * 0.05
+
+s = <span class="fn">SavingsAccount</span>(1000)
+s.<span class="fn">add_interest</span>()    <span class="cmt"># new ability</span>
+s.<span class="fn">withdraw</span>(200)     <span class="cmt"># reused from parent</span>
+<span class="builtin">print</span>(s.balance)    <span class="cmt"># 850.0</span></code></pre></div>
+  <div class="tnote">🔌 <b>Python already does this:</b> <code>bool</code> inherits from <code>int</code> — that is why <code>True + True == 2</code>. Proof: <code>issubclass(bool, int)</code> → <code>True</code>.</div>
+  <h3>Going deeper — overriding &amp; <code>super()</code></h3>
+  <p>A child can <strong>override</strong> a parent's method — write its own version — and still call the parent's with <code>super()</code>. The most common use is <code>__init__</code>: the child sets up its <em>own</em> extra data, then lets the parent set up the rest.</p>
+  <div class="code-wrap"><div class="code-head"><span>python · override, and reuse the parent with super()</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">SavingsAccount</span>(<span class="fn">BankAccount</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance, rate):
+        <span class="builtin">super</span>().<span class="fn">__init__</span>(balance)      <span class="cmt"># reuse parent setup → sets self.balance</span>
+        self.rate = rate               <span class="cmt"># then add the child's own extra</span>
+
+    <span class="kw">def</span> <span class="fn">withdraw</span>(self, amount):        <span class="cmt"># OVERRIDE the parent's method</span>
+        <span class="builtin">print</span>(<span class="str">"audit log..."</span>)       <span class="cmt"># add new behaviour</span>
+        <span class="builtin">super</span>().<span class="fn">withdraw</span>(amount)     <span class="cmt"># then reuse the parent's version</span></code></pre></div>
+
+  <p><b>But what <em>is</em> <code>super()</code>?</b> It does <u>not</u> mean "the parent." It means <b>"the next class one step up the chain."</b> Each call hops <b>exactly one level</b> — so if you stack three levels, the calls climb the ladder one rung at a time:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · super() climbs ONE level per call</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">BankAccount</span>:                       <span class="cmt"># level 1 — the root</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance):
+        self.balance = balance
+    <span class="kw">def</span> <span class="fn">describe</span>(self):
+        <span class="kw">return</span> <span class="str">f"balance={self.balance}"</span>
+
+<span class="kw">class</span> <span class="fn">SavingsAccount</span>(<span class="fn">BankAccount</span>):       <span class="cmt"># level 2</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance, rate):
+        <span class="builtin">super</span>().<span class="fn">__init__</span>(balance)         <span class="cmt"># one step up → BankAccount</span>
+        self.rate = rate
+    <span class="kw">def</span> <span class="fn">describe</span>(self):
+        <span class="kw">return</span> <span class="builtin">super</span>().<span class="fn">describe</span>() + <span class="str">f", rate={self.rate}%"</span>       <span class="cmt"># up → BankAccount</span>
+
+<span class="kw">class</span> <span class="fn">PremiumSavings</span>(<span class="fn">SavingsAccount</span>):    <span class="cmt"># level 3</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance, rate, cashback):
+        <span class="builtin">super</span>().<span class="fn">__init__</span>(balance, rate)   <span class="cmt"># one step up → SavingsAccount</span>
+        self.cashback = cashback
+    <span class="kw">def</span> <span class="fn">describe</span>(self):
+        <span class="kw">return</span> <span class="builtin">super</span>().<span class="fn">describe</span>() + <span class="str">f", cashback={self.cashback}%"</span>  <span class="cmt"># up → SavingsAccount</span>
+
+p = <span class="fn">PremiumSavings</span>(1000, 5, 2)
+<span class="builtin">print</span>(p.<span class="fn">describe</span>())
+<span class="cmt"># balance=1000, rate=5%, cashback=2%   ← the whole chain ran, one hop at a time</span></code></pre></div>
+  <div class="tnote">🪜 <b>One rung per call.</b> <code>PremiumSavings</code> → <code>SavingsAccount</code> → <code>BankAccount</code>. A single <code>super()</code> jumps <b>one</b> level up — never straight to the top. Because each level calls <code>super()</code> again, the calls <em>chain</em> up: the <b>root runs first</b> (<code>balance=1000</code>), then each child appends its part as the calls return.</div>
+  <div class="tnote">❗ <b>Myth: "<code>super()</code> = the parent."</b> True only for a single, straight chain. With <b>multiple parents</b>, <code>super()</code> follows the <b>MRO</b> — the next class <em>in line</em>, which can be a <em>sibling</em>, not the literal parent (see §18).</div>
+  <div class="tnote">🎯 <b>Why not just write <code>BankAccount.__init__(self, …)</code>?</b> Hard-coding the parent's name breaks the moment you rename or reorder parents, and it misbehaves under multiple inheritance. <code>super()</code> always picks the correct next class for you.</div>
+  <div class="tnote">📘 <b>MRO (Method Resolution Order)</b> = the exact list Python searches. See it with <code>PremiumSavings.__mro__</code>. &nbsp; ⚖️ <b>Composition vs inheritance:</b> inheritance = "<em>is-a</em>" (SavingsAccount <em>is a</em> BankAccount); composition = "<em>has-a</em>" (an Account <em>has a</em> Logger). For most real systems, prefer composition — it bends without breaking.</div>
+  <div class="tnote">🧭 <b>The word "override" — just enough for now:</b> a child <em>rewriting</em> a method it inherited (our <code>SavingsAccount.withdraw</code> above). That's all you need here. It's really a form of <b>polymorphism</b>, so its full story — and its easily-confused twin <b>overloading</b> — comes right after Pillar 3 → <b>§20</b>.</div>
+</section>
+<section>
+  <h2><span class="step-num">18</span> The 5 types of inheritance — and what Python allows</h2>
+  <p class="sub">Textbooks split inheritance by <em>how many</em> parents and children connect.</p>
+  <div class="inh-grid">
+    <div class="inh-card">
+      <h4>1 · Single</h4>
+      <div class="mermaid">flowchart TD
+        sA[A] --> sB[B]
+        classDef p fill:#241a05,stroke:#ffd43b,color:#ffd43b;
+        classDef c fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+        class sA p; class sB c;</div>
+      <span class="py">class B(A)</span>
+    </div>
+    <div class="inh-card">
+      <h4>2 · Multilevel</h4>
+      <div class="mermaid">flowchart TD
+        mA[A] --> mB[B] --> mC[C]
+        classDef p fill:#241a05,stroke:#ffd43b,color:#ffd43b;
+        classDef c fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+        class mA p; class mB,mC c;</div>
+      <span class="py">class C(B)  · B(A)</span>
+    </div>
+    <div class="inh-card">
+      <h4>3 · Hierarchical</h4>
+      <div class="mermaid">flowchart TD
+        hA[A] --> hB[B]
+        hA --> hC[C]
+        classDef p fill:#241a05,stroke:#ffd43b,color:#ffd43b;
+        classDef c fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+        class hA p; class hB,hC c;</div>
+      <span class="py">class B(A) · class C(A)</span>
+    </div>
+    <div class="inh-card">
+      <h4>4 · Multiple</h4>
+      <div class="mermaid">flowchart TD
+        pA[A] --> pC[C]
+        pB[B] --> pC
+        classDef p fill:#241a05,stroke:#ffd43b,color:#ffd43b;
+        classDef c fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+        class pA,pB p; class pC c;</div>
+      <span class="py">class C(A, B)</span>
+    </div>
+    <div class="inh-card">
+      <h4>5 · Hybrid (diamond)</h4>
+      <div class="mermaid">flowchart TD
+        yA[A] --> yB[B]
+        yA --> yC[C]
+        yB --> yD[D]
+        yC --> yD
+        classDef p fill:#241a05,stroke:#ffd43b,color:#ffd43b;
+        classDef c fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+        class yA p; class yB,yC,yD c;</div>
+      <span class="py">class D(B, C)</span>
+    </div>
+  </div>
+  <div class="bigbox blue">
+    <div class="label">★ Important — Python supports ALL FIVE</div>
+    <p class="big">Including <span class="hi">multiple inheritance</span>, which <strong>Java and C# forbid</strong> for classes.<br>Python allows it because it has one clear rule to settle clashes: <span class="hi-b">MRO</span> (Method Resolution Order), computed by the <span class="hi-b">C3 linearization</span> algorithm.</p>
+  </div>
+  <h3>The "diamond problem" — and how MRO solves it</h3>
+  <p>When <code>D</code> inherits from both <code>B</code> and <code>C</code>, and both came from <code>A</code> — whose <code>greet()</code> wins? Other languages ban this to avoid the confusion. Python answers it with a fixed, predictable order:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · multiple inheritance + the diamond</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">A</span>:
+    <span class="kw">def</span> <span class="fn">greet</span>(self): <span class="kw">return</span> <span class="str">"A"</span>
+<span class="kw">class</span> <span class="fn">B</span>(<span class="fn">A</span>):
+    <span class="kw">def</span> <span class="fn">greet</span>(self): <span class="kw">return</span> <span class="str">"B"</span>
+<span class="kw">class</span> <span class="fn">C</span>(<span class="fn">A</span>):
+    <span class="kw">def</span> <span class="fn">greet</span>(self): <span class="kw">return</span> <span class="str">"C"</span>
+<span class="kw">class</span> <span class="fn">D</span>(<span class="fn">B</span>, <span class="fn">C</span>):     <span class="cmt"># multiple inheritance (the diamond)</span>
+    <span class="kw">pass</span>
+
+<span class="builtin">print</span>(<span class="fn">D</span>().<span class="fn">greet</span>())   <span class="cmt"># 'B'   ← MRO picks B (left before right)</span>
+<span class="builtin">print</span>([c.__name__ <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">D</span>.__mro__])
+<span class="cmt"># ['D', 'B', 'C', 'A', 'object']   ← the exact, predictable search path</span></code></pre></div>
+  <div class="tnote">📘 <b>Why some languages refuse multiple inheritance:</b> without a clear rule, "which parent wins?" is ambiguous and bug-prone. Python's C3 rule guarantees a consistent order where every class is visited once — so multiple inheritance is safe <em>if you keep it simple</em>. 🧩 <b>Mixins</b> (small add-on classes) are the common, healthy use.</div>
+  <div class="tnote">🔬 <b>Python vs Java, at a glance:</b> multiple <em>class</em> inheritance → <b>Python ✓</b>, <b>Java ✗</b> (interfaces only). Method <b>overloading</b> → <b>Python ✗</b> natively (last <code>def</code> wins — §20), <b>Java ✓</b>. <b>Overriding</b> → <b>both ✓</b>. So it cuts both ways: each language allows something the other does not.</div>
+</section>
+<section>
+  <h2><span class="step-num">19</span> Pillar 3 — Polymorphism</h2>
+  <p class="sub">Pain: you keep writing <code>if type == ...</code> ladders.</p>
+  <p>"Poly" = many, "morph" = forms. <span class="hi">One action name</span>, and each type answers it <strong>its own way</strong>. You make the same call without caring which type it is.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    CALL["one call:<br/>animal.speak()"] --> D["Dog → Woof"]
+    CALL --> C["Cat → Meow"]
+    CALL --> W["Cow → Moo"]
+    classDef src fill:#241a05,stroke:#ffd43b,stroke-width:2px,color:#ffd43b;
+    classDef r fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    class CALL src;
+    class D,C,W r;
+    </div>
+    <div class="cap">Same call, different answer — no if-ladder needed.</div>
+  </div>
+  <div class="code-wrap"><div class="code-head"><span>python · same call, many forms</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Dog</span>:
+    <span class="kw">def</span> <span class="fn">speak</span>(self): <span class="kw">return</span> <span class="str">"Woof"</span>
+
+<span class="kw">class</span> <span class="fn">Cat</span>:
+    <span class="kw">def</span> <span class="fn">speak</span>(self): <span class="kw">return</span> <span class="str">"Meow"</span>
+
+<span class="kw">class</span> <span class="fn">Cow</span>:
+    <span class="kw">def</span> <span class="fn">speak</span>(self): <span class="kw">return</span> <span class="str">"Moo"</span>
+
+<span class="kw">for</span> animal <span class="kw">in</span> [<span class="fn">Dog</span>(), <span class="fn">Cat</span>(), <span class="fn">Cow</span>()]:
+    <span class="builtin">print</span>(animal.<span class="fn">speak</span>())    <span class="cmt"># Woof, then Meow, then Moo</span></code></pre></div>
+  <div class="tnote">🔌 <b>You already used it:</b> <code>len("hi")</code>, <code>len([1,2])</code>, <code>len({"a":1})</code> — one <code>len()</code>, many types. That is polymorphism.</div>
+  <div class="tnote">🦆 <b>Duck typing (Python's style):</b> "If it walks like a duck and quacks like a duck, it's a duck." Python never checks the type — it just calls <code>.speak()</code>. If the object has that method, it works. No <code>interface</code> keyword needed (unlike Java).</div>
+</section>
+<section>
+  <h2><span class="step-num">20</span> Overriding vs Overloading — two words people mix up</h2>
+  <p class="sub">Both live under polymorphism. One Python loves; the other it does <em>not</em> do the usual way.</p>
+  <h3>Overriding — child replaces a parent's method ✓ (Python loves this)</h3>
+  <p>This is <strong>runtime polymorphism</strong>: the child redefines a method it inherited. The object's real type decides which version runs.</p>
+  <div class="code-wrap"><div class="code-head"><span>python · the child's version wins</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Animal</span>:
+    <span class="kw">def</span> <span class="fn">speak</span>(self): <span class="kw">return</span> <span class="str">"some sound"</span>
+
+<span class="kw">class</span> <span class="fn">Dog</span>(<span class="fn">Animal</span>):
+    <span class="kw">def</span> <span class="fn">speak</span>(self): <span class="kw">return</span> <span class="str">"Woof"</span>    <span class="cmt"># OVERRIDE the parent</span>
+
+<span class="builtin">print</span>(<span class="fn">Dog</span>().<span class="fn">speak</span>())   <span class="cmt"># Woof  ← child's version runs at runtime</span></code></pre></div>
+  <p style="color:var(--muted)"><b>When:</b> you inherit something but need to change/extend its behaviour (use <code>super()</code> to also keep the parent's part).</p>
+  <h3>Overloading — same name, different parameters ✗ (not native in Python)</h3>
+  <p>In Java/C++ you can write two methods with the same name and different arguments. In Python the <strong>last one simply replaces the earlier one</strong> — because methods live in a dict keyed by name, and types are only known at runtime.</p>
+  <div class="code-wrap"><div class="code-head"><span>python · the second add() overwrites the first</span><button class="copy">Copy</button></div><pre><code><span class="kw">class</span> <span class="fn">Calc</span>:
+    <span class="kw">def</span> <span class="fn">add</span>(self, a, b):        <span class="cmt"># this one is forgotten...</span>
+        <span class="kw">return</span> a + b
+    <span class="kw">def</span> <span class="fn">add</span>(self, a, b, c):     <span class="cmt"># ...only THIS one survives</span>
+        <span class="kw">return</span> a + b + c
+
+<span class="fn">Calc</span>().<span class="fn">add</span>(1, 2)   <span class="cmt"># TypeError: missing argument 'c'</span></code></pre></div>
+  <p>The Pythonic ways to get "one name, many input shapes":</p>
+  <div class="code-wrap"><div class="code-head"><span>python · default args · *args · singledispatch</span><button class="copy">Copy</button></div><pre><code><span class="cmt"># 1) default arguments</span>
+<span class="kw">def</span> <span class="fn">add</span>(a, b, c=0): <span class="kw">return</span> a + b + c
+
+<span class="cmt"># 2) *args — any number of values</span>
+<span class="kw">def</span> <span class="fn">add</span>(*nums): <span class="kw">return</span> <span class="builtin">sum</span>(nums)
+
+<span class="cmt"># 3) dispatch by TYPE (functools, PEP 443)</span>
+<span class="kw">from</span> functools <span class="kw">import</span> singledispatchmethod
+<span class="kw">class</span> <span class="fn">Printer</span>:
+    <span class="builtin">@singledispatchmethod</span>
+    <span class="kw">def</span> <span class="fn">show</span>(self, x): <span class="builtin">print</span>(<span class="str">"other:"</span>, x)
+    <span class="builtin">@show.register</span>
+    <span class="kw">def</span> _(self, x: <span class="builtin">int</span>): <span class="builtin">print</span>(<span class="str">"int:"</span>, x)</code></pre></div>
+  <table class="ctable">
+    <tr><th>Aspect</th><th>Overriding</th><th>Overloading</th></tr>
+    <tr><td>Meaning</td><td>child redefines a parent method</td><td>same name, different parameters</td></tr>
+    <tr><td>Needs</td><td>inheritance (parent + child)</td><td>usually one class</td></tr>
+    <tr><td>Python support</td><td><span class="y">✓ fully supported</span></td><td><span class="n">✗ not native</span> (last def wins)</td></tr>
+    <tr><td>Type</td><td>runtime polymorphism</td><td>compile-time (in other languages)</td></tr>
+    <tr><td>In Python, do it with</td><td>just redefine in the subclass</td><td>default args · <code>*args</code> · <code>singledispatch</code></td></tr>
+    <tr><td>Use when</td><td>customise inherited behaviour</td><td>one action, many input shapes</td></tr>
+  </table>
+  <div class="tnote">🔌 <b>Operator overloading is real, though:</b> <code>+</code>, <code>==</code>, <code>[]</code> on your own objects via dunder methods (§22) — that <em>is</em> supported, and it is a form of polymorphism.</div>
+</section>
+<section>
+  <h2><span class="step-num">21</span> Pillar 4 — Abstraction</h2>
+  <p class="sub">Pain: too many messy details to think about.</p>
+  <p>You press a button and the work happens — you do not see the wiring. <span class="hi-g">Abstraction</span> means: show a <strong>simple surface</strong>, hide the complex inside.</p>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart TD
+    YOU["You write:<br/>acc.deposit(500)"] --> S["simple surface<br/>one method call"]
+    S --> H["hidden inside:<br/>validate · update · log · notify"]
+    classDef y fill:#1a2030,stroke:#4dabf7,color:#8ec4ff;
+    classDef s fill:#11211a,stroke:#51cf66,color:#9be7ab;
+    classDef h fill:#161b22,stroke:#33415a,color:#a6b3c4;
+    class YOU y;
+    class S s;
+    class H h;
+    </div>
+    <div class="cap">You use deposit(). You never need to know what it does inside.</div>
+  </div>
+  <div class="bigbox blue">
+    <div class="label">Easy way to remember the difference</div>
+    <p class="big"><span class="hi-g">Encapsulation</span> = <em>protect</em> the data (build the wall).<br><span class="hi-b">Abstraction</span> = <em>hide the complexity</em> (show one simple button).</p>
+  </div>
+  <h3>The idea behind it — the <span class="hi-b">interface</span></h3>
+  <p>Every abstraction has a <b>surface</b> you are allowed to touch: the list of methods you may call. That list is the <span class="hi-b">interface</span> — think of it as a <b>menu</b>. It names the actions (<code>speak()</code>, <code>deposit()</code>); it never shows how they are cooked. The <b>interface is the "what"</b>; the hidden code is the <b>"how."</b></p>
+  <div class="tnote">🍽️ <b>Interface = the menu.</b> Abstraction = ordering off it without seeing the kitchen. A <b>TV remote</b> is an interface too: the buttons say <em>what</em> you can do, never <em>how</em> the TV works inside.</div>
+  <p>Writing that menu down so Python <b>enforces</b> it is exactly what an <b>Abstract Base Class</b> does. Same <code>Dog</code> and <code>Cat</code> from Pillar 3 — but now every animal is <em>guaranteed</em> to carry <code>speak()</code>:</p>
+  <div class="code-wrap"><div class="code-head"><span>python · the interface, written down and enforced</span><button class="copy">Copy</button></div><pre><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Animal</span>(ABC):            <span class="cmt"># the interface = the menu of required actions</span>
+    <span class="builtin">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">speak</span>(self): ...      <span class="cmt"># the "what" — no "how" here</span>
+
+<span class="kw">class</span> <span class="fn">Dog</span>(<span class="fn">Animal</span>):
+    <span class="kw">def</span> <span class="fn">speak</span>(self): <span class="kw">return</span> <span class="str">"Woof!"</span>
+
+<span class="kw">class</span> <span class="fn">Cat</span>(<span class="fn">Animal</span>):
+    <span class="kw">def</span> <span class="fn">speak</span>(self): <span class="kw">return</span> <span class="str">"Meow!"</span>
+
+<span class="builtin">print</span>(<span class="fn">Dog</span>().<span class="fn">speak</span>())   <span class="cmt"># Woof!</span>
+<span class="builtin">print</span>(<span class="fn">Cat</span>().<span class="fn">speak</span>())   <span class="cmt"># Meow!</span>
+
+<span class="kw">class</span> <span class="fn">Snake</span>(<span class="fn">Animal</span>): <span class="kw">pass</span>    <span class="cmt"># forgot speak()</span>
+<span class="cmt"># Snake()  ->  TypeError at creation: must implement speak()</span></code></pre></div>
+  <div class="cap">The <b>interface</b> (<code>Animal</code>) lists the action; each subclass supplies the hidden <b>how</b>. Forget it, and Python blocks the object at birth — not later at runtime.</div>
+  <div class="tnote">🦆 <b>This is the fix for duck typing:</b> in Pillar 3 we just <em>hoped</em> every object had <code>speak()</code> — a wrong one failed late, when the method was finally called. The interface above <b>guarantees</b> it up front, so a missing <code>speak()</code> is caught the instant the object is built.</div>
+  <div class="tnote">🔌 <b>You already used it:</b> <code>[3,1,2].sort()</code> sorts your list — you never wrote the sorting algorithm. That detail is abstracted away.</div>
+  <div class="tnote">📘 <b>The word from §4, now earned:</b> a type defined by <em>what operations it offers</em> while its <em>internals stay hidden</em> is an <b>Abstract Data Type (ADT)</b>. "Abstract" = you call <code>acc.deposit()</code>, never touch the raw <code>balance</code>. Python's own <code>list</code> and <code>dict</code> are ADTs — you never see the C array or hash table inside.</div>
+  <div class="tnote">📘 <b>Going further — Abstract Base Class (ABC):</b> Python's <code>abc</code> module lets you say "every payment type <em>must</em> have a <code>pay()</code> method" and refuse to build any subclass that forgets it. It turns "please follow this shape" into an enforced rule.</div>
+  <div class="tnote">⚠ <b>Don't confuse the two:</b> an <b>ADT</b> is a <em>concept</em> (almost every well-designed class is one); an <b>abstract class / ABC</b> is a specific Python <em>feature</em>. They share the word "abstract" but are not the same thing.</div>
+</section>
+<section>
+  <div class="bigbox blue">
+    <div class="label">The one sentence that ties the pillars together</div>
+    <p class="big">A <span class="hi">class</span> makes a new type. An <span class="hi-p">object</span> is one real thing of that type.<br><span class="hi-g">Encapsulation, inheritance, polymorphism, abstraction</span> keep many objects clean — and that whole way of working is <span class="hi-b">OOP</span>.</p>
+  </div>
+</section>
+</main>
+<footer>
+  <p>OnePercentDev · OOP Master Flow · the complete visual guide, proven with Python itself</p>
+</footer>
+<script>
+  /* ---- Mermaid: keep original sources so we can recolour per theme ---- */
+  const mermaidEls = Array.from(document.querySelectorAll('.mermaid'));
+  const mermaidSrc = mermaidEls.map(el => el.innerHTML);
+
+  // dark hex -> light hex (fills + node text used inside the diagrams' classDefs)
+  const LIGHT_MAP = [
+    ['fill:#161b22', 'fill:#eef1f5'],
+    ['fill:#11211a', 'fill:#e7f7ec'],
+    ['fill:#241a05', 'fill:#fff4d1'],
+    ['fill:#1a2030', 'fill:#e6f0fc'],
+    ['fill:#2a1416', 'fill:#fde8e8'],
+    ['fill:#1c1430', 'fill:#efe9fd'],
+    ['color:#cdd6e0', 'color:#33415a'],
+    ['color:#a6b3c4', 'color:#4a5a70'],
+    ['color:#9be7ab', 'color:#1b7a33'],
+    ['color:#ffd43b', 'color:#8a6d00'],
+    ['color:#8ec4ff', 'color:#1565c0'],
+    ['color:#ffb3b3', 'color:#b32525'],
+    ['color:#cbb6ff', 'color:#5b3bc4']
+  ];
+
+  function recolour(src, theme) {
+    if (theme !== 'light') return src;
+    let out = src;
+    for (const [a, b] of LIGHT_MAP) out = out.split(a).join(b);
+    return out;
+  }
+
+  function mermaidVars(theme) {
+    const base = { fontFamily: '-apple-system, "Segoe UI", Roboto, sans-serif', fontSize: '15px' };
+    return theme === 'light'
+      ? { ...base, lineColor: '#7c8a9e', primaryColor: '#eef1f5', primaryTextColor: '#1f2733', primaryBorderColor: '#c3cdd9', tertiaryColor: '#f6f8fa', edgeLabelBackground: '#eef1f5' }
+      : { ...base, lineColor: '#5a6b82', primaryColor: '#161b22', primaryTextColor: '#e9eef5', primaryBorderColor: '#33415a', tertiaryColor: '#0d1117', edgeLabelBackground: '#1c2230' };
+  }
+
+  async function renderDiagrams(theme) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: mermaidVars(theme),
+      flowchart: { curve: 'basis', nodeSpacing: 40, rankSpacing: 50, useMaxWidth: true }
+    });
+    // Render each diagram in isolation, so a single bad one never blanks the rest.
+    for (let i = 0; i < mermaidEls.length; i++) {
+      const el = mermaidEls[i];
+      el.removeAttribute('data-processed');
+      el.innerHTML = recolour(mermaidSrc[i], theme);
+      try {
+        await mermaid.run({ nodes: [el], suppressErrors: true });
+      } catch (e) { /* keep going with the next diagram */ }
+    }
+  }
+
+  /* ---- Theme toggle ---- */
+  const SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  const MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+  const root = document.documentElement;
+  const toggleBtn = document.getElementById('themeToggle');
+  const iconEl = toggleBtn.querySelector('.tt-icon');
+  const textEl = toggleBtn.querySelector('.tt-text');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    // button advertises the theme you'll switch TO next
+    const next = theme === 'light' ? 'dark' : 'light';
+    iconEl.innerHTML = next === 'light' ? SUN : MOON;
+    textEl.textContent = next === 'light' ? 'Light' : 'Dark';
+    renderDiagrams(theme);
+  }
+
+  let current = localStorage.getItem('oop-theme') || 'dark';
+  applyTheme(current);
+
+  toggleBtn.addEventListener('click', () => {
+    current = current === 'light' ? 'dark' : 'light';
+    localStorage.setItem('oop-theme', current);
+    applyTheme(current);
+  });
+
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.closest('.code-wrap').querySelector('code');
+      navigator.clipboard.writeText(code.innerText).then(() => {
+        const t = btn.textContent; btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = t, 1200);
+      });
+    });
+  });
+</script>
+</body>
+</html>
