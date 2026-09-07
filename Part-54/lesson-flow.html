@@ -1,0 +1,2063 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Concurrency in Python — the complete flow</title>
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     THEMES — dark (default) + light
+     ═══════════════════════════════════════════════════════════ */
+  :root, [data-theme="dark"] {
+    --bg:#0a0f1c; --bg-elev:#0f172a; --panel:#131b2e; --panel-2:#1a2440;
+    --ink:#e2e8f0; --ink-strong:#f8fafc; --muted:#94a3b8; --subtle:#64748b;
+    --brand:#38bdf8; --brand-2:#7dd3fc; --accent:#22d3ee;
+    --warn:#fbbf24; --good:#4ade80; --danger:#f472b6;
+    --border:#1e293b; --border-2:#334155;
+    --code-bg:#05080f; --code-ink:#e2e8f0;
+    --sidebar-bg:#05080f; --sidebar-hover:#131b2e;
+    --sidebar-active-bg:linear-gradient(90deg,rgba(56,189,248,.14),transparent);
+    --tag-bg:#131b2e; --tag-border:rgba(56,189,248,.3);
+    --btn-bg:#131b2e; --btn-border:#1e293b; --btn-hover:#1a2440;
+    --banner-bg:linear-gradient(90deg,rgba(56,189,248,.1),rgba(34,211,238,.04));
+    --banner-border:rgba(56,189,248,.22);
+    --box-bg:#0f172a; --box-bg-key:#1a1024;
+    --deep-bg:rgba(56,189,248,.06); --deep-border:rgba(56,189,248,.28);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+    --shadow-md:0 4px 12px rgba(0,0,0,.35);
+    --shadow-lg:0 10px 30px rgba(0,0,0,.45);
+    --p-num-shadow:0 4px 14px rgba(56,189,248,.3);
+    --img-bg:#f8fafc;
+    --scroll-thumb:#1e293b;
+  }
+  [data-theme="light"] {
+    --bg:#ffffff; --bg-elev:#fafbfc; --panel:#f8fafc; --panel-2:#f1f5f9;
+    --ink:#1e293b; --ink-strong:#0f172a; --muted:#64748b; --subtle:#94a3b8;
+    --brand:#0369a1; --brand-2:#0284c7; --accent:#0e7490;
+    --warn:#b45309; --good:#15803d; --danger:#be185d;
+    --border:#e2e8f0; --border-2:#cbd5e1;
+    --code-bg:#0f172a; --code-ink:#e2e8f0;
+    --sidebar-bg:#f8fafc; --sidebar-hover:#e2e8f0;
+    --sidebar-active-bg:linear-gradient(90deg,rgba(3,105,161,.08),transparent);
+    --tag-bg:#eff6ff; --tag-border:rgba(3,105,161,.2);
+    --btn-bg:#ffffff; --btn-border:#e2e8f0; --btn-hover:#f1f5f9;
+    --banner-bg:linear-gradient(90deg,rgba(3,105,161,.05),rgba(14,116,144,.02));
+    --banner-border:rgba(3,105,161,.15);
+    --box-bg:#f8fafc; --box-bg-key:#fdf2f8;
+    --deep-bg:rgba(3,105,161,.05); --deep-border:rgba(3,105,161,.2);
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 12px rgba(15,23,42,.06);
+    --shadow-lg:0 10px 30px rgba(15,23,42,.1);
+    --p-num-shadow:0 4px 14px rgba(3,105,161,.28);
+    --img-bg:#ffffff;
+    --scroll-thumb:#cbd5e1;
+  }
+
+  :root{--read-w:820px;--content-w:1200px;--sidebar-w:280px;}
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .25s ease,color .25s ease}
+  ::selection{background:rgba(56,189,248,.28)}
+  [data-theme="light"] ::selection{background:rgba(3,105,161,.15)}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:6px}
+
+  aside,main,.box,.deep,.banner,.map,.bin-card,.top-controls button,
+  table,th,td,code,pre,header.hero .tag,.tl-row::before{
+    transition:background-color .25s ease,color .25s ease,border-color .25s ease}
+
+  a{color:var(--brand);text-decoration:none;font-weight:500}
+  a:hover{color:var(--brand-2);text-decoration:underline}
+
+  code{background:var(--code-bg);color:var(--code-ink);padding:2px 7px;border-radius:4px;
+    font:13.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:10px;
+    overflow:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    box-shadow:var(--shadow-sm);max-width:var(--content-w);border:1px solid transparent;
+    position:relative}
+  pre code{background:transparent;padding:0;color:inherit}
+  /* Copy button on every <pre> block */
+  .copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;font:600 11px/1 ui-sans-serif,
+    -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;letter-spacing:.4px;
+    text-transform:uppercase;color:#94a3b8;background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.15);border-radius:5px;cursor:pointer;opacity:0;
+    transition:opacity .2s,background .15s,color .15s,border-color .15s;user-select:none}
+  pre:hover .copy-btn,.copy-btn:focus-visible{opacity:1}
+  .copy-btn:hover{background:rgba(255,255,255,.12);color:#e2e8f0;border-color:rgba(255,255,255,.28)}
+  .copy-btn.copied{color:#22c55e;border-color:#22c55e;background:rgba(34,197,94,.14);opacity:1}
+  [data-theme="light"] .copy-btn{color:#64748b;background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12)}
+  [data-theme="light"] .copy-btn:hover{background:rgba(0,0,0,.1);color:#0f172a;border-color:rgba(0,0,0,.22)}
+  [data-theme="light"] .copy-btn.copied{color:#16a34a;border-color:#16a34a;background:rgba(34,197,94,.16)}
+
+  /* ═══════════════════════════════════════════════════════════
+     TOP CONTROLS — theme toggle + sidebar toggle cluster
+     ═══════════════════════════════════════════════════════════ */
+  .top-controls{position:fixed;top:14px;left:14px;z-index:40;display:flex;gap:6px}
+  .top-controls button{width:38px;height:38px;border-radius:9px;
+    border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--ink);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow-sm);transition:all .15s ease}
+  .top-controls button:hover{background:var(--btn-hover);border-color:var(--border-2);
+    transform:translateY(-1px);box-shadow:var(--shadow-md)}
+  .top-controls button:active{transform:translateY(0)}
+  .top-controls button svg{width:18px;height:18px;stroke:currentColor;fill:none;
+    stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .theme-icon-moon{display:none}
+  [data-theme="light"] .theme-icon-sun{display:none}
+  [data-theme="light"] .theme-icon-moon{display:block}
+
+  /* ═══════════════════════════════════════════════════════════
+     SIDEBAR
+     ═══════════════════════════════════════════════════════════ */
+  nav.side{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);
+    background:var(--sidebar-bg);border-right:1px solid var(--border);
+    padding:66px 16px 24px;overflow-y:auto;z-index:20;
+    transition:transform .28s ease,background-color .25s ease,border-color .25s ease}
+  nav.side.hidden{transform:translateX(-100%)}
+  nav.side h4{margin:0 0 4px;color:var(--brand);font-size:12px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.1em}
+  nav.side .sub{color:var(--muted);font-size:12px;margin:0 0 22px;line-height:1.5}
+  nav.side a{display:block;color:var(--ink);font-size:13.5px;padding:7px 12px;
+    border-radius:7px;margin-bottom:2px;line-height:1.4;font-weight:400;
+    border-left:2px solid transparent;transition:all .12s ease}
+  nav.side a:hover{background:var(--sidebar-hover);color:var(--ink-strong);
+    text-decoration:none}
+  nav.side a.active{background:var(--sidebar-active-bg);color:var(--ink-strong);
+    border-left-color:var(--brand);font-weight:600}
+  nav.side .part{color:var(--accent);font-weight:800;text-transform:uppercase;
+    font-size:10.5px;letter-spacing:.12em;margin:20px 12px 8px;display:block}
+  nav.side .ref{margin-top:26px;padding:14px;background:var(--panel);
+    border-radius:10px;border:1px solid var(--border);font-size:12.5px;
+    color:var(--muted);line-height:1.55}
+  nav.side .ref a{display:inline;padding:0;color:var(--brand);font-size:12.5px;
+    border:none;font-weight:500}
+
+  /* ═══════════════════════════════════════════════════════════
+     MAIN
+     ═══════════════════════════════════════════════════════════ */
+  main{margin-left:var(--sidebar-w);padding:64px 48px 100px;
+    transition:margin-left .28s ease}
+  nav.side.hidden ~ main{margin-left:0;padding-left:72px}
+  @media(max-width:900px){nav.side{transform:translateX(-100%)}
+    main{margin-left:0;padding:64px 22px 80px}}
+
+  /* ═══════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════ */
+  header.hero{max-width:var(--content-w);margin:0 auto 48px}
+  header.hero .tag{display:inline-block;background:var(--tag-bg);
+    border:1px solid var(--tag-border);color:var(--brand);font-size:11.5px;
+    font-weight:600;padding:5px 12px;border-radius:999px;letter-spacing:.06em;
+    text-transform:uppercase;margin-bottom:16px}
+  header.hero h1{margin:0 0 14px;font-size:44px;line-height:1.1;
+    letter-spacing:-.025em;font-weight:800;color:var(--ink-strong)}
+  header.hero .sub{color:var(--muted);font-size:17px;max-width:var(--read-w);
+    line-height:1.6;margin:0}
+  header.hero .banner{margin-top:26px;padding:16px 20px;background:var(--banner-bg);
+    border:1px solid var(--banner-border);border-radius:12px;font-size:14.5px;
+    color:var(--ink);max-width:var(--content-w);line-height:1.6}
+  header.hero .banner a{font-weight:600}
+
+  /* ═══════════════════════════════════════════════════════════
+     SECTIONS
+     ═══════════════════════════════════════════════════════════ */
+  section.part{max-width:var(--content-w);margin:0 auto 72px;
+    padding-top:36px;border-top:1px solid var(--border)}
+  section.part:first-of-type{border-top:none;padding-top:0}
+  .p-head{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+  .p-num{background:linear-gradient(135deg,var(--brand),var(--accent));
+    color:#ffffff;font-weight:800;font-size:17px;width:46px;height:46px;
+    border-radius:12px;display:flex;align-items:center;justify-content:center;
+    flex:0 0 46px;box-shadow:var(--p-num-shadow);letter-spacing:-.02em}
+  .p-title{margin:0;font-size:28px;line-height:1.25;letter-spacing:-.015em;
+    font-weight:700;color:var(--ink-strong);flex:1}
+  .p-mins{color:var(--muted);font-size:11.5px;text-transform:uppercase;
+    letter-spacing:.08em;font-weight:600;flex:0 0 auto;white-space:nowrap}
+  h3{margin:32px 0 12px;font-size:20px;color:var(--ink-strong);font-weight:700;
+    letter-spacing:-.005em}
+  h4{margin:22px 0 10px;font-size:16px;color:var(--ink-strong);font-weight:600}
+  p{margin:0 0 14px;max-width:var(--read-w)}
+  ul,ol{max-width:var(--read-w);padding-left:24px;margin:0 0 14px}
+  li{margin:5px 0}
+
+  /* ═══════════════════════════════════════════════════════════
+     BOXES
+     ═══════════════════════════════════════════════════════════ */
+  .box{border-left:4px solid;padding:16px 20px;border-radius:0 10px 10px 0;
+    background:var(--box-bg);margin:18px 0;max-width:var(--content-w);
+    box-shadow:var(--shadow-sm)}
+  .box .lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.1em;margin-bottom:8px}
+  .box p:last-child{margin-bottom:0}
+  .box pre{margin:10px 0}
+  /* Simple syntax highlighting for ISA/Python examples */
+  pre .kw{color:#c084fc;font-weight:700}
+  pre .cm{color:#94a3b8;font-style:italic}
+  [data-theme="light"] pre .kw{color:#7c3aed;font-weight:700}
+  [data-theme="light"] pre .cm{color:#64748b;font-style:italic}
+  .b-say{border-color:var(--brand)} .b-say .lbl{color:var(--brand)}
+  .b-show{border-color:var(--good)} .b-show .lbl{color:var(--good)}
+  .b-demo{border-color:var(--warn)} .b-demo .lbl{color:var(--warn)}
+  .b-key{border-color:var(--danger);background:var(--box-bg-key)}
+  .b-key .lbl{color:var(--danger)}
+
+  /* ═══════════════════════════════════════════════════════════
+     LINK-OUT CARDS
+     ═══════════════════════════════════════════════════════════ */
+  .deep{margin-top:18px;padding:14px 18px;background:var(--deep-bg);
+    border:1px dashed var(--deep-border);border-radius:10px;font-size:14px;
+    color:var(--ink);max-width:var(--content-w);line-height:1.6}
+  .deep b{color:var(--brand)}
+  .deep .arrow{color:var(--brand);margin:0 4px}
+  .deep ul{margin:8px 0 0;padding-left:22px}
+  .deep li{margin:3px 0;font-size:14px}
+
+  /* ═══════════════════════════════════════════════════════════
+     FIGURES
+     ═══════════════════════════════════════════════════════════ */
+  figure{margin:20px 0;max-width:var(--content-w)}
+  figure img{width:100%;height:auto;max-height:60vh;border-radius:12px;
+    box-shadow:var(--shadow-md);background:var(--img-bg);object-fit:contain;display:block}
+  figure figcaption{color:var(--muted);font-size:12.5px;margin-top:10px;
+    text-align:center;font-style:italic;line-height:1.5}
+  .fig-two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0;
+    max-width:var(--content-w)}
+  .fig-two figure{margin:0}
+  @media(max-width:800px){.fig-two{grid-template-columns:1fr}}
+  .fig-three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0;
+    max-width:var(--content-w)}
+  .fig-three figure{margin:0}
+  .fig-three img{max-height:38vh}
+  @media(max-width:800px){.fig-three{grid-template-columns:1fr}}
+
+  /* ═══════════════════════════════════════════════════════════
+     SWITCH-GENERATIONS TIMELINE (Section 2)
+     ═══════════════════════════════════════════════════════════ */
+  .switch-gen{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+    margin:20px 0;max-width:var(--content-w)}
+  @media(max-width:900px){.switch-gen{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.switch-gen{grid-template-columns:1fr}}
+  .gen{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-sm);
+    transition:transform .15s ease,box-shadow .15s ease}
+  .gen:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+  .gen img{width:100%;height:130px;object-fit:cover;background:var(--img-bg);
+    border-bottom:1px solid var(--border);display:block}
+  .gen-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+  .gen-year{font-size:11px;color:var(--accent);font-weight:800;
+    text-transform:uppercase;letter-spacing:.08em}
+  .gen-size{font-size:15.5px;color:var(--ink-strong);font-weight:700;margin-top:2px}
+  .gen-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:4px}
+
+  /* "Same story on Windows too" mini-row (Section 2) */
+  .parity{display:grid;grid-template-columns:auto 1fr 1fr;gap:16px;align-items:center;
+    background:var(--panel);border:1px dashed var(--border);border-radius:12px;
+    padding:14px 18px;margin:18px 0;max-width:var(--content-w)}
+  @media(max-width:700px){.parity{grid-template-columns:1fr}}
+  .parity-lbl{font-size:13px;font-weight:800;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.06em}
+  .parity-item{display:flex;align-items:center;gap:12px}
+  .parity-item img{width:88px;height:60px;object-fit:cover;border-radius:6px;
+    border:1px solid var(--border)}
+  .parity-item .p-name{font-size:13px;line-height:1.4}
+  .parity-item .p-name b{color:var(--ink-strong)}
+
+  /* Bridge between sections — "next section answers this question" */
+  .q-next{display:flex;align-items:center;gap:16px;
+    background:linear-gradient(135deg,var(--brand),var(--accent));
+    color:#fff;padding:16px 22px;border-radius:12px;
+    margin:22px 0 8px;max-width:var(--content-w);
+    font-size:15.5px;line-height:1.5;box-shadow:var(--shadow-md);
+    transition:transform .15s ease}
+  .q-next:hover{transform:translateY(-1px)}
+  .q-next .q-tag{background:rgba(255,255,255,.24);padding:5px 11px;border-radius:7px;
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+    white-space:nowrap;flex-shrink:0;color:#fff}
+  .q-next .q-text{flex:1}
+  .q-next b{color:#fff;font-weight:700}
+  @media(max-width:640px){.q-next{flex-direction:column;align-items:flex-start;gap:10px}}
+
+  /* Section 0 — three explicit questions list */
+  .q-list{counter-reset:q;list-style:none;padding:0;margin:14px 0 0;
+    display:flex;flex-direction:column;gap:10px;max-width:var(--content-w)}
+  .q-list li{position:relative;padding:14px 18px 14px 56px;
+    background:var(--box-bg);border:1px solid var(--border);border-left:4px solid var(--brand);
+    border-radius:10px;font-size:15px;line-height:1.55;color:var(--ink)}
+  .q-list li b{color:var(--ink-strong)}
+  .q-list li::before{counter-increment:q;content:counter(q);position:absolute;
+    left:14px;top:14px;width:28px;height:28px;border-radius:50%;
+    background:linear-gradient(135deg,var(--brand),var(--accent));
+    color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;
+    justify-content:center;font-family:var(--sans);box-shadow:var(--shadow-sm)}
+
+  /* MOSFET-as-switch inline SVG container (Section 2) */
+  .mosfet-svg{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    box-shadow:var(--shadow-sm)}
+  .mosfet-svg svg{width:100%;max-width:460px;height:auto;display:block}
+  .mosfet-svg .cap{font-size:13px;color:var(--muted);text-align:center;
+    line-height:1.5;margin-top:4px;padding:0 8px}
+  /* SVG theme-aware colours */
+  :root .mosfet-svg .m-silicon{fill:#e6f0ff;stroke:#2f6bff}
+  :root .mosfet-svg .m-doped{fill:#ff9a3c;stroke:#e07800}
+  :root .mosfet-svg .m-gate-on{fill:#c3a3ff;stroke:#7b3ff2}
+  :root .mosfet-svg .m-gate-off{fill:#d0d0d8;stroke:#8a8a95}
+  :root .mosfet-svg .m-wire{stroke:var(--ink);fill:none}
+  :root .mosfet-svg .m-label{fill:var(--ink);font-family:var(--sans);font-weight:700}
+  :root .mosfet-svg .m-cur-on{stroke:#00b34a;fill:none}
+  :root .mosfet-svg .m-cur-off{stroke:#d32f2f;fill:none}
+  :root .mosfet-svg .m-state-on{fill:#00805a}
+  :root .mosfet-svg .m-state-off{fill:#c62828}
+  [data-theme="dark"] .mosfet-svg .m-silicon{fill:#1a2544;stroke:#5b8dff}
+  [data-theme="dark"] .mosfet-svg .m-doped{fill:#6b3800;stroke:#ffa64d}
+  [data-theme="dark"] .mosfet-svg .m-gate-on{fill:#4a2f7a;stroke:#b78dff}
+  [data-theme="dark"] .mosfet-svg .m-gate-off{fill:#2a2d3a;stroke:#5a5d6a}
+  [data-theme="dark"] .mosfet-svg .m-cur-on{stroke:#4dd88a}
+  [data-theme="dark"] .mosfet-svg .m-cur-off{stroke:#ff6b6b}
+  [data-theme="dark"] .mosfet-svg .m-state-on{fill:#4dd88a}
+  [data-theme="dark"] .mosfet-svg .m-state-off{fill:#ff6b6b}
+
+  /* ═══════════════════════════════════════════════════════════
+     CHIP BINNING DIAGRAM
+     ═══════════════════════════════════════════════════════════ */
+  .bin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+    margin:20px 0;max-width:var(--content-w)}
+  @media(max-width:800px){.bin-grid{grid-template-columns:1fr}}
+  .bin-card{background:var(--panel);border:1px solid var(--border);
+    border-radius:12px;padding:14px;box-shadow:var(--shadow-sm)}
+  .bin-card h5{margin:0 0 10px;color:var(--ink-strong);font-size:14px;font-weight:600}
+  .bin-card .die{background:var(--panel-2);border-radius:8px;padding:10px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px}
+  .core{aspect-ratio:1;border-radius:4px;background:var(--brand);display:flex;
+    align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700}
+  .core.dead{background:var(--subtle);color:transparent;position:relative;opacity:.5}
+  .core.dead::after{content:"✕";color:var(--danger);font-weight:900;font-size:14px;
+    position:absolute;opacity:1}
+  .bin-card .lbl{font-size:12px;color:var(--muted);text-align:center}
+  .bin-card .tier{font-size:20px;font-weight:800;text-align:center;margin:6px 0;
+    letter-spacing:-.015em}
+  .bin-card.i9 .tier{color:var(--good)}
+  .bin-card.i7 .tier{color:var(--warn)}
+  .bin-card.i5 .tier{color:var(--danger)}
+
+  /* ═══════════════════════════════════════════════════════════
+     CHIP VERTICALS (three laptop chip families)
+     ═══════════════════════════════════════════════════════════ */
+  .chip-verticals{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+    margin:24px 0;max-width:var(--content-w)}
+  @media(max-width:900px){.chip-verticals{grid-template-columns:1fr}}
+  .cv-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;
+    transition:transform .15s ease,box-shadow .15s ease}
+  .cv-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+  .cv-header{padding:14px 18px;border-bottom:1px solid var(--border);
+    background:var(--bg-elev);display:flex;justify-content:space-between;align-items:center}
+  .cv-brand{font-size:19px;font-weight:800;letter-spacing:-.015em}
+  .cv-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+    padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .cv-card.apple .cv-brand{color:var(--ink-strong)}
+  .cv-card.apple .cv-tag{background:rgba(74,222,128,.15);color:var(--good)}
+  [data-theme="light"] .cv-card.apple .cv-tag{background:rgba(21,128,61,.12);color:var(--good)}
+  .cv-card.intel .cv-brand{color:#00a3ff}
+  [data-theme="light"] .cv-card.intel .cv-brand{color:#0068b5}
+  .cv-card.intel .cv-tag{background:rgba(0,113,197,.16);color:#2fb0ff}
+  [data-theme="light"] .cv-card.intel .cv-tag{background:rgba(0,104,181,.12);color:#0068b5}
+  .cv-card.amd .cv-brand{color:#ff5555}
+  [data-theme="light"] .cv-card.amd .cv-brand{color:#d13030}
+  .cv-card.amd .cv-tag{background:rgba(237,28,36,.16);color:#ff7373}
+  [data-theme="light"] .cv-card.amd .cv-tag{background:rgba(209,48,48,.12);color:#d13030}
+  .cv-img{width:100%;height:190px;object-fit:contain;background:#000;
+    display:block;border-bottom:1px solid var(--border);padding:8px}
+  [data-theme="light"] .cv-img{background:#0a0a0a}
+  .cv-specs{width:100%;font-size:13px;padding:6px 0;margin:0}
+  .cv-specs .cv-row{display:flex;justify-content:space-between;align-items:center;
+    padding:8px 18px;border-bottom:1px dashed var(--border)}
+  .cv-specs .cv-row:last-child{border-bottom:none}
+  .cv-specs .cv-k{color:var(--muted);font-weight:500;font-size:12px;
+    text-transform:uppercase;letter-spacing:.05em}
+  .cv-specs .cv-v{color:var(--ink-strong);font-weight:600;text-align:right;font-size:13px}
+  .cv-footnote{padding:16px 18px;background:var(--bg-elev);border:1px solid var(--border);
+    border-radius:10px;margin-top:12px;font-size:13.5px;color:var(--ink);
+    max-width:var(--content-w);line-height:1.55}
+  .cv-footnote b{color:var(--accent)}
+
+  /* ═══════════════════════════════════════════════════════════
+     TIMELINE
+     ═══════════════════════════════════════════════════════════ */
+  .tl{position:relative;margin:20px 0;padding-left:32px;max-width:var(--content-w)}
+  .tl::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:2px;
+    background:var(--border)}
+  .tl-row{position:relative;padding:10px 0 14px 22px}
+  .tl-row::before{content:"";position:absolute;left:-9px;top:16px;width:14px;
+    height:14px;border-radius:50%;background:var(--brand);
+    border:3px solid var(--bg);box-shadow:0 0 0 1px var(--border)}
+  .tl-row.wall::before{background:var(--danger)}
+  .tl-row.pivot::before{background:var(--good)}
+  .tl-year{color:var(--muted);font-size:11.5px;letter-spacing:.1em;font-weight:600;
+    text-transform:uppercase}
+  .tl-title{font-weight:700;color:var(--ink-strong);margin:2px 0 4px;font-size:15.5px}
+  .tl-note{color:var(--muted);font-size:13.5px;line-height:1.55}
+
+  /* ═══════════════════════════════════════════════════════════
+     TABLES
+     ═══════════════════════════════════════════════════════════ */
+  table{border-collapse:collapse;margin:16px 0;max-width:var(--content-w);
+    width:100%;font-size:14px;border:1px solid var(--border);border-radius:10px;
+    overflow:hidden;box-shadow:var(--shadow-sm)}
+  th,td{padding:10px 14px;border-bottom:1px solid var(--border);
+    text-align:left;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  th{background:var(--panel);color:var(--brand);font-weight:700;font-size:13px;
+    border-bottom:1px solid var(--border-2)}
+  tr:nth-child(even) td{background:var(--bg-elev)}
+  td{color:var(--ink)}
+
+  /* ═══════════════════════════════════════════════════════════
+     MAP / TOC
+     ═══════════════════════════════════════════════════════════ */
+  .map{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:24px 28px;margin:24px 0 36px;max-width:var(--content-w);
+    box-shadow:var(--shadow-sm)}
+  .map h3{margin:0 0 14px;color:var(--brand);font-size:18px;font-weight:700}
+  .map ol{margin:0;padding-left:22px;columns:2;gap:32px}
+  .map ol li{margin:6px 0;font-size:14px;break-inside:avoid;color:var(--muted)}
+  .map ol li b{color:var(--ink-strong)}
+  @media(max-width:700px){.map ol{columns:1}}
+
+  footer{margin-top:72px;padding-top:24px;border-top:1px solid var(--border);
+    color:var(--muted);font-size:13px;text-align:center}
+
+  /* ═══════════════════════════════════════════════════════════
+     PRINT
+     ═══════════════════════════════════════════════════════════ */
+  @media print{
+    nav.side,.top-controls{display:none}
+    main{margin-left:0;padding:20px}
+    body{background:#fff;color:#000}
+    .box,.deep,.map,.bin-card,table{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<div class="top-controls">
+  <button id="sideToggle" title="Toggle sidebar (S)" aria-label="Toggle sidebar">
+    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <button id="themeToggle" title="Toggle theme (T)" aria-label="Toggle theme">
+    <svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+    <svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────
+     Sidebar
+     ───────────────────────────────────────────────────────── -->
+<nav class="side" id="side">
+  <h4>Concurrency in Python</h4>
+  <p class="sub">The complete flow — 19 sections, ~45 min read.</p>
+
+  <span class="part">Hook</span>
+  <a href="#s0">0 · The opening experiment</a>
+
+  <span class="part">Part 1 · How a chip is made</span>
+  <a href="#s1">1 · From rock to wafer</a>
+  <a href="#s2">2 · The transistor — a switch made of silicon</a>
+  <a href="#s3">3 · The language and the design</a>
+  <a href="#s4">4 · The pen — EUV lithography</a>
+  <a href="#s5">5 · The factory — TSMC</a>
+  <a href="#s6">6 · Chip binning — the i9/i7/i5 mystery</a>
+  <a href="#s7">7 · The packaged chip — Intel vs Apple</a>
+
+  <span class="part">Part 2 · The mental model</span>
+  <a href="#s8">8 · The 55-year timeline</a>
+  <a href="#s9">9 · Why Apple is faster — the SoC</a>
+
+  <span class="part">Part 3 · Now — the Python</span>
+  <a href="#s10">10 · What is a core?</a>
+  <a href="#s11">11 · What is a thread?</a>
+  <a href="#s12">12 · threading — the Activity Monitor demo</a>
+  <a href="#s13">13 · Concurrency vs Parallelism</a>
+  <a href="#s14">14 · async / await / asyncio</a>
+  <a href="#s15">15 · The GIL</a>
+  <a href="#s16">16 · multiprocessing — the escape</a>
+  <a href="#s17">17 · Python 3.14t — the GIL, optional</a>
+
+  <span class="part">Payoff</span>
+  <a href="#s18">18 · The answer — mystery solved</a>
+
+  <div class="ref">
+    <b style="color:var(--brand)">How to read this file</b><br>
+    Sections are ordered. Each one has an <b>insight box</b>, a <b>hands-on experiment</b> where relevant, and a <b>"Go deeper"</b> card linking to Wikipedia articles and YouTube deep-dives if you want more. Press <code style="font-size:11px">T</code> to switch light/dark. Press <code style="font-size:11px">S</code> to hide this sidebar.
+  </div>
+</nav>
+
+<!-- ─────────────────────────────────────────────────────────
+     Main content
+     ───────────────────────────────────────────────────────── -->
+<main>
+
+<header class="hero">
+  <span class="tag">Part 54 · Concurrency in Python</span>
+  <h1>Concurrency in Python — the complete flow</h1>
+  <p class="sub">A complete story-arc — from how a chip is physically made, through what a core and thread really are, to Python's <code>asyncio</code>, <code>threading</code>, the GIL, and <code>multiprocessing</code>. Every section is short enough to read in 2–5 minutes.</p>
+  <div class="banner">
+    Everything here is the mental model — enough to understand the whole picture. Each section has a <b>"Go deeper"</b> card at the bottom with Wikipedia articles, videos, and official docs if you want to dig further into a topic.
+  </div>
+
+  <div class="map">
+    <h3>What's covered</h3>
+    <ol>
+      <li><b>The opening experiment</b> — a live Python demo raises the question</li>
+      <li><b>How a chip is made</b> — rock → wafer → transistor → design → EUV → TSMC → binning → package</li>
+      <li><b>The mental model</b> — 55-year timeline + why Apple is faster (SoC)</li>
+      <li><b>What is a core, what is a thread</b> — hardware vs OS</li>
+      <li><b>Concurrency vs Parallelism</b> — Rob Pike's distinction</li>
+      <li><b><code>async</code> / <code>await</code> / <code>asyncio</code></b> — cooperative concurrency, one thread</li>
+      <li><b>The GIL</b> — why threads don't parallelise Python bytecode</li>
+      <li><b><code>multiprocessing</code></b> — the escape route to real parallel cores</li>
+      <li><b>Python 3.14t</b> — the GIL is (optionally) gone</li>
+      <li><b>The answer</b> — the mystery solved on Activity Monitor</li>
+    </ol>
+  </div>
+</header>
+
+<!-- ═════════════════════════════════════════════════════════
+     SECTION 0 — The opening experiment
+     ═════════════════════════════════════════════════════════ -->
+<section class="part" id="s0">
+  <div class="p-head"><div class="p-num">0</div>
+    <h2 class="p-title">The opening experiment</h2>
+    <span class="p-mins">≈ 2 min</span></div>
+
+  <p>Before anything else, an experiment. Run it on your machine and watch what happens.</p>
+
+  <div class="box b-demo">
+    <span class="lbl">The experiment</span>
+    <ol>
+      <li>Open your CPU monitor:
+        <ul>
+          <li><b>Mac</b> — Activity Monitor → View → CPU Usage</li>
+          <li><b>Windows</b> — Task Manager (<code>Ctrl + Shift + Esc</code>) → Performance → CPU (right-click the graph → "Change graph to → Logical processors" to see every core)</li>
+        </ul>
+        All your CPU cores are mostly idle.
+      </li>
+      <li>In terminal, from <code>Part-54/</code>, run <code>python cpu-demo.py 1</code>.</li>
+      <li>The monitor shows <b>one</b> CPU core at ~100%. Every other core stays idle.</li>
+      <li>Read the numbers: Python is at 100% CPU. Total system CPU is around <code>100 / N</code> % (where <code>N</code> is your core count — on this 14-core M4 Pro, that's about 7%). You paid for many cores. The program is using one.</li>
+    </ol>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">Why this matters</span>
+    <p>As a developer, you pay for all this hardware. In production, you rent servers with 32, 64, 128 cores. But out of the box, your Python script uses <b>one</b> of them.</p>
+    <p>Three questions come straight out of this experiment. Every section below is here to answer them:</p>
+    <ol class="q-list">
+      <li><b>Why only one core?</b> Why does Python not spread the work across all the cores you have?</li>
+      <li><b>What is a "core", and what is a "thread"?</b> Why does one Python program pin exactly one of them?</li>
+      <li><b>How do we unlock the rest?</b> What are threads, processes, and <code>async</code> — and when do you use each one?</li>
+    </ol>
+    <p style="margin-top:14px">To answer these, we have to go into the machine itself. It starts with how the chip is physically made — because every one of these answers becomes obvious once you've seen the hardware.</p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     PART 1 · HOW A CHIP IS MADE
+     ═════════════════════════════════════════════════════════ -->
+
+<!-- SECTION 1 -->
+<section class="part" id="s1">
+  <div class="p-head"><div class="p-num">1</div>
+    <h2 class="p-title">From rock to wafer — the raw material</h2>
+    <span class="p-mins">≈ 2 min</span></div>
+
+  <p>The silicon inside your Mac, your Windows laptop, and even your phone did <b>not</b> come from beach sand — that's an oversimplification you'll hear everywhere. It came from a specific rock called <b>quartzite</b>, mined out of the ground and refined through four industrial stages until it is <b>99.9999999% pure</b>. That's <b>9 nines</b>: one non-silicon atom per billion silicon atoms. The purest material humans have ever made.</p>
+
+  <div class="fig-three">
+    <figure>
+      <img src="assets/quartzite-rock.jpg" alt="Quartzite rock specimen">
+      <figcaption><b>1. The rock</b> — Quartzite, 80–99% quartz (SiO₂). Where all silicon starts.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/silicon-ingot-intel-museum.jpg" alt="300mm silicon ingot">
+      <figcaption><b>2. The crystal</b> — a 300 mm single-crystal silicon ingot, grown from molten polysilicon. Perfectly pure.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/silicon-wafer.jpg" alt="Silicon wafer">
+      <figcaption><b>3. The wafer</b> — the ingot is sliced with a diamond wire saw into thin discs (~0.7 mm thick). One ingot ≈ 1,000 wafers. Each wafer is a blank sheet ready for chips.</figcaption>
+    </figure>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">The one-line summary</span>
+    <p>Rock &rarr; melted with carbon at 2,000 °C to get raw silicon &rarr; purified through chemistry into ultra-pure rods &rarr; melted again and pulled into a single crystal &rarr; sliced into wafers. That wafer is the blank sheet the whole chip is built on.</p>
+  </div>
+
+  <a href="#s2" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 2 answers →</span>
+    <span class="q-text"><b>The wafer by itself does nothing.</b> It's just polished silicon. To turn it into a computer, we need to build <b>billions of tiny switches</b> on top of it. How is a switch even made out of silicon?</span>
+  </a>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span> the four-stage refinement (quartzite → MGS → Siemens process → Czochralski ingot):
+    <ul>
+      <li>Wikipedia — <a href="https://en.wikipedia.org/wiki/Quartzite" target="_blank" rel="noopener">Quartzite</a>, <a href="https://en.wikipedia.org/wiki/Metallurgical_grade_silicon" target="_blank" rel="noopener">Metallurgical grade silicon</a>, <a href="https://en.wikipedia.org/wiki/Siemens_process" target="_blank" rel="noopener">Siemens process</a>, <a href="https://en.wikipedia.org/wiki/Czochralski_method" target="_blank" rel="noopener">Czochralski method</a>, <a href="https://en.wikipedia.org/wiki/Monocrystalline_silicon" target="_blank" rel="noopener">Monocrystalline silicon</a>, <a href="https://en.wikipedia.org/wiki/Wafer_(electronics)" target="_blank" rel="noopener">Silicon wafer</a></li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=aWVywhzuHnQ" target="_blank" rel="noopener">Real Engineering: "How are Silicon Wafers Made?"</a> (15 min)</li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=dX9CGRZwD-w" target="_blank" rel="noopener">Branch Education: "How are Microchips Made?"</a> (33 min — full lifecycle animation)</li>
+      <li>Industry — <a href="https://www.bernreuter.com/polysilicon/" target="_blank" rel="noopener">Bernreuter Research</a> (the polysilicon industry primer)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 2 -->
+<section class="part" id="s2">
+  <div class="p-head"><div class="p-num">2</div>
+    <h2 class="p-title">The transistor — a switch made of silicon</h2>
+    <span class="p-mins">≈ 5 min</span></div>
+
+  <p>We now have a blank silicon wafer. To turn it into a computer, we need one thing on top of it: <b>switches</b>. Billions of them. Each switch is called a <b>transistor</b>. Your M4 Pro has <b>55 billion</b> of them on a piece of silicon the size of a postage stamp.</p>
+
+  <h3>Why switches? Because everything a computer does is 0s and 1s</h3>
+  <p>Whatever you write in Python, C++, or any language — <code>2 + 2</code>, opening a file, sending a WhatsApp message — the CPU only understands <b>ON</b> or <b>OFF</b>. Every calculation is billions of ON/OFF flips per second. So a computer, at the bottom, is just an enormous grid of tiny switches. The whole history of computing is one story: making those switches smaller, cheaper, and faster.</p>
+
+  <h3>The 80-year story of the switch</h3>
+  <p>Same idea across four generations. Just smaller and smaller — by a factor of about <b>ten million</b>:</p>
+
+  <div class="switch-gen">
+    <div class="gen">
+      <img src="assets/eniac.jpg" alt="ENIAC computer, 1946">
+      <div class="gen-body">
+        <span class="gen-year">1946 · Room-sized</span>
+        <b class="gen-size">Vacuum tubes</b>
+        <span class="gen-note">ENIAC used <b>17,468</b> glass vacuum tubes as switches. It filled a room, weighed 27 tonnes, and burned out a tube every few hours.</span>
+      </div>
+    </div>
+    <div class="gen">
+      <img src="assets/first-transistor.jpg" alt="First transistor, Bell Labs 1947">
+      <div class="gen-body">
+        <span class="gen-year">1947 · Palm-sized</span>
+        <b class="gen-size">First transistor</b>
+        <span class="gen-note">Bell Labs invents the point-contact transistor. Does the same job as a vacuum tube, but a fraction of the size and 1,000× less power.</span>
+      </div>
+    </div>
+    <div class="gen">
+      <img src="assets/intel-4004-c.jpg" alt="Intel 4004, first microprocessor">
+      <div class="gen-body">
+        <span class="gen-year">1971 · Fingertip</span>
+        <b class="gen-size">First microprocessor</b>
+        <span class="gen-note">Intel 4004: <b>2,300</b> transistors packed onto one silicon chip. An entire CPU on a piece of silicon smaller than a fingernail.</span>
+      </div>
+    </div>
+    <div class="gen">
+      <img src="assets/apple-m4-pro-cpu.jpg" alt="Apple M4 Pro chip — modern SoC example">
+      <div class="gen-body">
+        <span class="gen-year">2024–26 · Fingernail</span>
+        <b class="gen-size">Modern SoC</b>
+        <span class="gen-note">Apple M4 Pro (Mac), Intel Core Ultra 9 & AMD Ryzen 9 (Windows) — <b>20 to 100+ billion</b> transistors, each <b>2–3 nanometres</b> wide. Thinner than a strand of DNA.</span>
+      </div>
+    </div>
+  </div>
+
+  <p style="color:var(--muted);font-size:14px;margin-top:4px">Same principle for 80 years. Just smaller. That is why your MacBook (or Windows laptop) fits on your lap and ENIAC filled a room.</p>
+
+  <!-- Same story on Windows — mini-row with 2 chip photos -->
+  <div class="parity">
+    <span class="parity-lbl">Same on Windows</span>
+    <div class="parity-item">
+      <img src="assets/intel-13900k-die-annotated.jpg" alt="Intel chip die">
+      <span class="p-name"><b>Intel Core Ultra 9</b><br>~30 B transistors · 3 nm class</span>
+    </div>
+    <div class="parity-item">
+      <img src="assets/ryzen-die.jpg" alt="AMD Ryzen die">
+      <span class="p-name"><b>AMD Ryzen 9</b><br>~20 B transistors · 4/5 nm class</span>
+    </div>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">In one line — the two words to remember</span>
+    <p style="margin:0 0 8px"><b>Transistor</b> = a tiny on/off switch made of silicon. Three terminals: <b>Source · Gate · Drain</b>. Voltage on the Gate lets current flow from Source to Drain. That's a <b>1</b>. No voltage → no flow → that's a <b>0</b>.</p>
+    <p style="margin:0"><b>Microprocessor</b> = many transistors (thousands → billions) packed onto <em>one</em> piece of silicon that together do the full job of a CPU — fetch an instruction, decode it, add/multiply/compare, and store the result. Intel 4004 (1971) was the first one that fit an entire CPU on one chip. Every phone, laptop, and server chip today is a much bigger microprocessor.</p>
+  </div>
+
+  <h3>So — why silicon for the transistor?</h3>
+  <p>Because pure silicon is a <b>semiconductor</b>: it neither conducts electricity like copper nor blocks it like glass. It sits exactly in the middle. That in-between property is what lets us <em>control</em> when it conducts and when it doesn't — which is exactly what a switch needs. Copper is too permissive (always ON). Glass is too restrictive (always OFF). Silicon is the sweet spot we can gate.</p>
+
+  <h3>How a switch is built out of silicon</h3>
+  <p>By <b>doping</b> — shooting a few atoms of phosphorus or boron into precise regions of the silicon using an <b>ion implantation machine</b>. Those doped regions behave differently from the pure silicon around them. Line up two doped regions with a plain silicon region between them, put an insulator layer on top, put a metal wire on top of that (the "gate") — and you have built one <b>MOSFET</b> switch. Voltage on the gate → electricity flows (1). No voltage → nothing flows (0).</p>
+
+  <div class="fig-two">
+    <div class="mosfet-svg">
+      <svg viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MOSFET as a switch — ON and OFF states">
+        <!-- Title labels -->
+        <text x="125" y="22" text-anchor="middle" class="m-label m-state-on" font-size="15">Gate = ON  →  current flows  =  1</text>
+        <text x="375" y="22" text-anchor="middle" class="m-label m-state-off" font-size="15">Gate = OFF  →  no current  =  0</text>
+
+        <!-- ═════ LEFT: ON state ═════ -->
+        <g transform="translate(0,0)">
+          <!-- Silicon body -->
+          <rect x="45" y="130" width="160" height="70" rx="6" class="m-silicon" stroke-width="2"/>
+          <text x="125" y="188" text-anchor="middle" class="m-label" font-size="11" fill="#0a3f8f">silicon body</text>
+          <!-- Source (left doped region) -->
+          <rect x="55" y="140" width="46" height="34" rx="3" class="m-doped" stroke-width="1.5"/>
+          <text x="78" y="163" text-anchor="middle" class="m-label" font-size="11" fill="#5a2a00">S</text>
+          <!-- Drain (right doped region) -->
+          <rect x="149" y="140" width="46" height="34" rx="3" class="m-doped" stroke-width="1.5"/>
+          <text x="172" y="163" text-anchor="middle" class="m-label" font-size="11" fill="#5a2a00">D</text>
+          <!-- Insulator (thin bar under gate) -->
+          <rect x="103" y="125" width="44" height="5" fill="#fff" stroke="#7b3ff2" stroke-width="0.8"/>
+          <!-- Gate metal (energised) -->
+          <rect x="103" y="106" width="44" height="19" rx="2" class="m-gate-on" stroke-width="1.5"/>
+          <text x="125" y="120" text-anchor="middle" class="m-label" font-size="11" fill="#3a1e6b">+V</text>
+
+          <!-- Terminal wires -->
+          <line x1="78" y1="140" x2="78" y2="70" class="m-wire" stroke-width="2"/>
+          <line x1="125" y1="106" x2="125" y2="70" class="m-wire" stroke-width="2"/>
+          <line x1="172" y1="140" x2="172" y2="70" class="m-wire" stroke-width="2"/>
+          <text x="78"  y="60" text-anchor="middle" class="m-label" font-size="13">Source</text>
+          <text x="125" y="60" text-anchor="middle" class="m-label" font-size="13">Gate</text>
+          <text x="172" y="60" text-anchor="middle" class="m-label" font-size="13">Drain</text>
+
+          <!-- Current arrow (solid green) -->
+          <path d="M 100 216 Q 125 234 148 216" class="m-cur-on" stroke-width="3" fill="none" marker-end="url(#arr-on)"/>
+          <text x="125" y="250" text-anchor="middle" class="m-label m-state-on" font-size="12">current S → D</text>
+        </g>
+
+        <!-- ═════ RIGHT: OFF state ═════ -->
+        <g transform="translate(250,0)">
+          <!-- Silicon body -->
+          <rect x="45" y="130" width="160" height="70" rx="6" class="m-silicon" stroke-width="2"/>
+          <text x="125" y="188" text-anchor="middle" class="m-label" font-size="11" fill="#0a3f8f">silicon body</text>
+          <!-- Source (left doped region) -->
+          <rect x="55" y="140" width="46" height="34" rx="3" class="m-doped" stroke-width="1.5"/>
+          <text x="78" y="163" text-anchor="middle" class="m-label" font-size="11" fill="#5a2a00">S</text>
+          <!-- Drain (right doped region) -->
+          <rect x="149" y="140" width="46" height="34" rx="3" class="m-doped" stroke-width="1.5"/>
+          <text x="172" y="163" text-anchor="middle" class="m-label" font-size="11" fill="#5a2a00">D</text>
+          <!-- Insulator (thin bar under gate) -->
+          <rect x="103" y="125" width="44" height="5" fill="#fff" stroke="#8a8a95" stroke-width="0.8"/>
+          <!-- Gate metal (off) -->
+          <rect x="103" y="106" width="44" height="19" rx="2" class="m-gate-off" stroke-width="1.5"/>
+          <text x="125" y="120" text-anchor="middle" class="m-label" font-size="11" fill="#555">0V</text>
+
+          <!-- Terminal wires -->
+          <line x1="78" y1="140" x2="78" y2="70" class="m-wire" stroke-width="2"/>
+          <line x1="125" y1="106" x2="125" y2="70" class="m-wire" stroke-width="2"/>
+          <line x1="172" y1="140" x2="172" y2="70" class="m-wire" stroke-width="2"/>
+          <text x="78"  y="60" text-anchor="middle" class="m-label" font-size="13">Source</text>
+          <text x="125" y="60" text-anchor="middle" class="m-label" font-size="13">Gate</text>
+          <text x="172" y="60" text-anchor="middle" class="m-label" font-size="13">Drain</text>
+
+          <!-- Broken current line (red, dashed) -->
+          <line x1="100" y1="220" x2="115" y2="220" class="m-cur-off" stroke-width="3"/>
+          <line x1="135" y1="220" x2="150" y2="220" class="m-cur-off" stroke-width="3"/>
+          <text x="125" y="220" text-anchor="middle" class="m-label m-state-off" font-size="16" font-weight="800">×</text>
+          <text x="125" y="250" text-anchor="middle" class="m-label m-state-off" font-size="12">no current</text>
+        </g>
+
+        <!-- Arrow marker -->
+        <defs>
+          <marker id="arr-on" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#00b34a"/>
+          </marker>
+        </defs>
+      </svg>
+      <p class="cap">A <b>MOSFET</b> — the switch inside every chip. Three terminals: <b>Source</b>, <b>Gate</b>, <b>Drain</b>. Put voltage on the Gate → current flows Source → Drain (that's a <b>1</b>). Remove the voltage → nothing flows (that's a <b>0</b>). That is the whole trick.</p>
+    </div>
+    <figure>
+      <img src="assets/ion-implanter.jpg" alt="Ion implantation machine">
+      <figcaption>An <b>ion implanter</b> — the industrial machine that shoots dopant atoms (phosphorus, boron) into the wafer at very high voltage. This is the step that turns plain silicon into <em>switchable</em> silicon.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Multiple layers connect them — the "highways"</h3>
+  <p>Once all the transistors are built on the wafer, they need to be wired together. Modern <b>laptop chips</b> stack <b>14–17 layers of copper wiring</b> on top of the transistors. Apple <b>M4 Pro</b> (TSMC N3 process), Intel <b>Core Ultra 9</b> (Intel 3 / TSMC N3), AMD <b>Ryzen 9</b> (TSMC 4 nm) — all three of the laptop chip families shipping today use this same multi-layer architecture. Each layer routes signals to different parts of the chip. This is called <b>BEOL</b> (Back-End of Line). One chip goes through <b>1,000+ processing steps</b> and takes <b>3–4 months</b> to finish, wafer start to finished wafer.</p>
+
+  <h3>But wait — <em>where</em> does each transistor go?</h3>
+  <p>A small correction to a common intuition. It is tempting to picture the process as: "the ion implanter turns the whole wafer into a uniform sea of transistors first, and then somebody wires them up." That is not how it works.</p>
+  <p>The <b>design comes first</b>. The design acts like a stencil (called a <b>photomask</b>) — every doping step, every wiring layer, only happens in the exact regions the design specifies. All 55 billion transistors on your M4 Pro sit precisely where an engineer at Apple drew them, months earlier.</p>
+  <p>Which means: <b>you cannot have a transistor without a design first.</b> The chip is not made <em>then</em> designed — it is designed <em>then</em> made. And that raises the next question.</p>
+
+  <a href="#s3" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 3 answers →</span>
+    <span class="q-text"><b>So who draws this design?</b> And what "language" does the chip actually speak that lets a design get turned into silicon?</span>
+  </a>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span> MOSFETs, FinFETs, GAA transistors, the physics of doping:
+    <ul>
+      <li>Wikipedia — <a href="https://en.wikipedia.org/wiki/MOSFET" target="_blank" rel="noopener">MOSFET</a>, <a href="https://en.wikipedia.org/wiki/Doping_(semiconductor)" target="_blank" rel="noopener">Doping (semiconductor)</a>, <a href="https://en.wikipedia.org/wiki/Ion_implantation" target="_blank" rel="noopener">Ion implantation</a>, <a href="https://en.wikipedia.org/wiki/Photolithography" target="_blank" rel="noopener">Photolithography</a>, <a href="https://en.wikipedia.org/wiki/FinFET" target="_blank" rel="noopener">FinFET</a>, <a href="https://en.wikipedia.org/wiki/Multigate_device#Gate-all-around_(GAA)_FETs" target="_blank" rel="noopener">Gate-all-around (GAA) FET</a></li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=Xf7jaxwnyso" target="_blank" rel="noopener">Branch Education: "How do Transistors Work?"</a> (11 min — best animation on YouTube)</li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=NGFhc8R_uO4" target="_blank" rel="noopener">Applied Science: "Making integrated circuits at home"</a> (technical, deep)</li>
+      <li>TSMC — <a href="https://www.tsmc.com/english/dedicatedFoundry/technology/logic" target="_blank" rel="noopener">TSMC logic process roadmap</a> (N7 → N5 → N3 → N2)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 3 -->
+<section class="part" id="s3">
+  <div class="p-head"><div class="p-num">3</div>
+    <h2 class="p-title">The language <em>and</em> the design — two separate things</h2>
+    <span class="p-mins">≈ 6 min</span></div>
+
+  <p>We know a chip is designed <em>then</em> built. But "design" is a loose word. In reality, a chip company makes <b>two very different decisions</b>, and it's important not to confuse them (people usually do). Both are needed to make a chip.</p>
+
+  <p style="font-size:16.5px;color:var(--ink-strong);border-left:4px solid var(--accent);padding:10px 16px;margin:14px 0 22px;background:var(--box-bg);border-radius:0 8px 8px 0"><b>What "language" does the chip understand?</b> — and <b>how do you physically build a chip that speaks it?</b> These are two different questions with two different answers.</p>
+
+  <!-- Upfront comparison: Language ≠ Design -->
+  <table>
+    <tr>
+      <th style="width:16%"></th>
+      <th style="width:42%">🗣️ The LANGUAGE (ISA)</th>
+      <th style="width:42%">🏗️ The DESIGN (microarchitecture)</th>
+    </tr>
+    <tr>
+      <td><b>What is it?</b></td>
+      <td>The <em>vocabulary</em> the chip physically understands. The rules for what patterns of 0s and 1s mean — <code>ADD</code>, <code>LOAD</code>, <code>STORE</code>, <code>JUMP</code>.</td>
+      <td>The <em>physical layout</em> of the transistors on the silicon — how many cores, where the cache goes, how the GPU is arranged, where the NPU sits.</td>
+    </tr>
+    <tr>
+      <td><b>How many exist?</b></td>
+      <td>Only <b>3</b> in the whole world: <b>ARM, x86-64, RISC-V</b>. Almost never change.</td>
+      <td><b>Dozens</b>, and a new one launches every 1–2 years: M4 Pro, Core Ultra 9, Ryzen 9, Snapdragon X…</td>
+    </tr>
+    <tr>
+      <td><b>Who owns it?</b></td>
+      <td>ARM Holdings (ARM) · Intel &amp; AMD (x86) · open-source community (RISC-V).</td>
+      <td>The chip designer: Apple, Qualcomm, Intel, AMD, Samsung, NVIDIA…</td>
+    </tr>
+    <tr>
+      <td><b>Simple analogy</b></td>
+      <td>The <em>language</em> a person speaks (English, Hindi, Kannada).</td>
+      <td>The specific <em>person</em> (John who speaks English is not the same as Priya who also speaks English).</td>
+    </tr>
+  </table>
+
+  <p>Two people can speak the same language but be completely different individuals. Same for chips: <b>Apple M4 Pro and Qualcomm Snapdragon X both speak ARM</b> — but they are two very different physical designs made by two very different companies.</p>
+
+  <h3>Layer 1 — the LANGUAGE (ISA)</h3>
+  <p>The chip's language is called an <b>Instruction Set Architecture (ISA)</b>. Think of it as the <em>rulebook</em> that says: "if you see this pattern of 0s and 1s, do <em>this</em> operation." The chip's transistors are physically wired to recognise the patterns in its ISA — so an ARM chip literally cannot understand an x86 pattern, and vice versa.</p>
+
+  <p>A typical ISA has around 100–2,000 machine instructions. Examples:</p>
+<pre><span class="kw">ADD</span>   R1, R2         <span class="cm"># add two registers</span>
+<span class="kw">LOAD</span>  R1, [address]  <span class="cm"># fetch data from memory</span>
+<span class="kw">STORE</span> R1, [address]  <span class="cm"># save data to memory</span>
+<span class="kw">JUMP</span>  address        <span class="cm"># go to another instruction</span></pre>
+
+  <div class="box b-say">
+    <span class="lbl">"Is ISA a language like Python?" — the question every developer asks</span>
+    <p><b>No, not quite.</b> Python is a <em>high-level</em> language <b>you</b> write. ISA is a <em>low-level</em> machine language <b>the chip</b> physically executes. Your Python code has to be <em>translated down</em> into ISA before the silicon can run it. Roughly:</p>
+<pre><span class="cm"># Python you write:</span>
+result = 2 + 3
+
+     │  Python interpreter (or a C++ compiler)
+     │  translates it into ISA instructions
+     ▼
+
+<span class="cm"># Machine code (ARM ISA) the chip actually executes:</span>
+<span class="kw">LOAD</span>  R1, 2
+<span class="kw">LOAD</span>  R2, 3
+<span class="kw">ADD</span>   R3, R1, R2
+<span class="kw">STORE</span> R3, [result]</pre>
+    <p>Each of those ISA lines is one thing the chip's transistors are physically wired to do in a single clock tick. Python is many layers above this — but every Python line, no matter how fancy, eventually becomes a sequence of ISA instructions on the metal.</p>
+  </div>
+
+  <p>Three ISAs run the entire computing world:</p>
+  <table>
+    <tr><th>ISA</th><th>Who owns it</th><th>Who uses it</th></tr>
+    <tr><td><b>ARM</b></td><td>ARM Holdings (UK, Cambridge)</td><td>Apple M-series, Qualcomm Snapdragon, iPhone, Android — everything except Intel/AMD</td></tr>
+    <tr><td><b>x86-64</b></td><td>Intel &amp; AMD (jointly own it)</td><td>All Intel and AMD desktop/laptop/server chips</td></tr>
+    <tr><td><b>RISC-V</b></td><td>Open source</td><td>Growing fast — SiFive, Alibaba, some AI accelerators, some Nvidia GPU cores</td></tr>
+  </table>
+
+  <div class="box b-say">
+    <span class="lbl">Analogy in one line</span>
+    <p>ISAs are like human languages. <b>ARM = English · x86 = Kannada · RISC-V = Hindi</b>. A chip only understands <em>one</em> natively — there is no in-between. That's why a Windows <code>.exe</code> compiled for x86 won't run on an ARM Mac without a translator (Rosetta 2 does this on Apple Silicon).</p>
+  </div>
+
+  <h3>Layer 2 — the DESIGN (microarchitecture)</h3>
+  <p>Once a company picks a language (say, ARM), they still have to <b>physically design a chip that speaks it</b>. That's the <b>microarchitecture</b> — the actual arrangement of silicon:</p>
+  <ul>
+    <li>How many CPU cores? Any split between performance (P) and efficiency (E) cores?</li>
+    <li>How big are the L1 / L2 / L3 caches?</li>
+    <li>Where does the GPU sit relative to the CPU?</li>
+    <li>Where does the NPU (Neural Engine / AI accelerator) go?</li>
+    <li>How is the memory controller wired?</li>
+    <li>What clock speed can each core hit before it overheats?</li>
+  </ul>
+
+  <p>Same ISA, very different designs. Take three ARM chips:</p>
+  <table>
+    <tr><th>Chip</th><th>ISA (language)</th><th>Design (microarchitecture)</th><th>Made for</th></tr>
+    <tr><td>Apple <b>M4 Pro</b></td><td>ARM</td><td>14 cores (10P + 4E) + 20-core GPU + Neural Engine</td><td>MacBook Pro laptops</td></tr>
+    <tr><td>Qualcomm <b>Snapdragon X Elite</b></td><td>ARM</td><td>12 cores + Adreno GPU + Hexagon NPU</td><td>Windows-on-ARM laptops</td></tr>
+    <tr><td>Apple <b>A17 Pro</b></td><td>ARM</td><td>6 cores + smaller GPU, phone-tuned power/thermal budget</td><td>iPhone 15 Pro</td></tr>
+  </table>
+
+  <p>All three speak the exact same language (ARM). But the physical designs are completely different, because they target completely different products (laptop vs Windows laptop vs phone).</p>
+
+  <div class="box b-say">
+    <span class="lbl">The takeaway</span>
+    <p><b>Language = ARM / x86 / RISC-V.</b> Fixed rulebook, only 3 in the world, changes almost never.<br>
+    <b>Design = M4 Pro / Core Ultra 9 / Ryzen 9 / Snapdragon X.</b> Physical layout, dozens of them, new one every year.<br>
+    A chip is defined by <em>both</em> — but they are chosen separately.</p>
+  </div>
+
+  <h3>The practical proof — this is why Python has 3 different Windows installers</h3>
+  <p>All this ISA vs Design talk feels abstract. Here is the exact moment you will hit it as a developer. Open <a href="https://www.python.org/downloads/windows/" target="_blank" rel="noopener">python.org/downloads/windows</a> and you will see three different installers for the same Python version:</p>
+
+  <figure style="max-width:var(--content-w);margin:16px 0">
+    <img src="assets/python-installers-windows.png" alt="python.org Windows downloads page showing 32-bit, 64-bit and ARM64 installer options" style="width:100%;border:1px solid var(--border);border-radius:10px">
+    <figcaption>Real screenshot — python.org gives you a choice of three installers per Windows Python release. Each one is compiled to a different ISA (chip language).</figcaption>
+  </figure>
+
+  <table>
+    <tr>
+      <th>What python.org calls it</th>
+      <th>Actual ISA</th>
+      <th>Which chip you have</th>
+      <th>Real examples</th>
+    </tr>
+    <tr>
+      <td><b>Windows installer (64-bit)</b></td>
+      <td><b>x86-64</b> <span style="color:var(--muted)">(a.k.a. x64, AMD64)</span></td>
+      <td>Intel or AMD chip (≈99% of Windows laptops)</td>
+      <td>Intel Core Ultra 9, AMD Ryzen 9, older Core i7 / i9</td>
+    </tr>
+    <tr>
+      <td><b>Windows installer (32-bit)</b></td>
+      <td><b>x86</b> (32-bit)</td>
+      <td>Very old Intel/AMD (pre-2010)</td>
+      <td>Ignore — legacy only, unless you have a museum-piece laptop</td>
+    </tr>
+    <tr>
+      <td><b>Windows installer (ARM64)</b></td>
+      <td><b>ARM</b></td>
+      <td>Windows-on-ARM laptop</td>
+      <td>Qualcomm Snapdragon X Elite, Surface Pro 11, Surface Laptop 7, most 2024+ "Copilot+ PCs"</td>
+    </tr>
+  </table>
+
+  <p>The one <em>without</em> an ISA label (just "64-bit") is actually <b>x86-64</b>. Python.org didn't spell it out because for 20 years x86-64 was <em>the only</em> Windows chip. ARM64 for Windows exploded only in 2024 with Snapdragon X, so it gets its own explicit label.</p>
+
+  <div class="box b-say">
+    <span class="lbl">Why this matters — the emulation penalty</span>
+    <p><b>A Python installer built for one ISA does not run on the other.</b> If you download the x86-64 installer on a Snapdragon X laptop, Windows will silently run it under an emulator called <b>Windows Prism</b> — the same idea as <b>Rosetta 2</b> on Apple Silicon Macs. It works, but it's slower and burns extra battery. In production, on long-running scripts or ML workloads, it is measurable.</p>
+    <p>The fix is simple: pick the installer that matches your chip's ISA. Native speed, no translation layer.</p>
+  </div>
+
+  <h4>How to check what chip you actually have</h4>
+  <table>
+    <tr><th>OS</th><th>Where to look</th><th>What it means</th></tr>
+    <tr>
+      <td><b>Windows</b></td>
+      <td>Settings → System → About → <em>System type</em></td>
+      <td>"x64-based processor" = <b>x86-64</b> (Intel/AMD)<br>"ARM-based processor" = <b>ARM64</b> (Snapdragon)</td>
+    </tr>
+    <tr>
+      <td><b>Mac</b></td>
+      <td> menu → About This Mac → <em>Chip</em></td>
+      <td>"Apple M..." = <b>ARM</b> (Apple Silicon)<br>"Intel Core..." = <b>x86-64</b> (Intel Mac, pre-2020)</td>
+    </tr>
+  </table>
+
+  <div class="box b-say">
+    <span class="lbl">A small kindness for Mac users</span>
+    <p>On Mac, python.org ships <em>one</em> macOS installer — a <b>universal binary</b> that contains <em>both</em> the x86-64 and ARM64 versions of Python inside a single file. macOS picks the right one at launch. That's why Mac users almost never bump into this problem, and Windows users always do.</p>
+  </div>
+
+  <div class="box b-demo">
+    <span class="lbl">One-liner: ask Python what chip it's running on</span>
+<pre>python3 -c <span class="cm">"import platform; print('Machine:', platform.machine())"</span>
+<span class="cm"># macOS Apple Silicon →</span>  Machine: arm64
+<span class="cm"># Windows Intel/AMD    →</span>  Machine: AMD64
+<span class="cm"># Windows Snapdragon   →</span>  Machine: ARM64</pre>
+    <p>That single word (<code>arm64</code>, <code>AMD64</code>, <code>x86_64</code>) is proof of which ISA your chip speaks — decided at the factory years before you bought the laptop.</p>
+  </div>
+
+  <h3>The three laptop chip families you'll see in 2026</h3>
+  <p>Ignore mobile phones, iPads, servers for now — this is about <b>laptops</b>. Buy any laptop today and the chip inside is from one of three families. This is the whole mental map:</p>
+
+  <div class="chip-verticals">
+
+    <!-- Apple -->
+    <div class="cv-card apple">
+      <div class="cv-header">
+        <span class="cv-brand">Apple</span>
+        <span class="cv-tag">SoC</span>
+      </div>
+      <img class="cv-img" src="assets/apple-m4-cpu-architecture.jpg" alt="Apple M4 chip architecture — 4 performance cores + 6 efficiency cores">
+      <div class="cv-specs">
+        <div class="cv-row"><span class="cv-k">ISA</span><span class="cv-v">ARM</span></div>
+        <div class="cv-row"><span class="cv-k">Designer</span><span class="cv-v">Apple</span></div>
+        <div class="cv-row"><span class="cv-k">Fab</span><span class="cv-v">TSMC (Taiwan)</span></div>
+        <div class="cv-row"><span class="cv-k">Style</span><span class="cv-v">SoC — all on one die</span></div>
+        <div class="cv-row"><span class="cv-k">Latest</span><span class="cv-v">M4 / M4 Pro / M4 Max (2024)</span></div>
+        <div class="cv-row"><span class="cv-k">Example laptop</span><span class="cv-v">MacBook Pro 14"</span></div>
+      </div>
+    </div>
+
+    <!-- Intel -->
+    <div class="cv-card intel">
+      <div class="cv-header">
+        <span class="cv-brand">Intel</span>
+        <span class="cv-tag">Tile-based</span>
+      </div>
+      <img class="cv-img" src="assets/intel-13900k-die-annotated.jpg" alt="Intel Core Ultra die">
+      <div class="cv-specs">
+        <div class="cv-row"><span class="cv-k">ISA</span><span class="cv-v">x86-64</span></div>
+        <div class="cv-row"><span class="cv-k">Designer</span><span class="cv-v">Intel</span></div>
+        <div class="cv-row"><span class="cv-k">Fab</span><span class="cv-v">Intel Foundry (own)</span></div>
+        <div class="cv-row"><span class="cv-k">Style</span><span class="cv-v">Tiles — CPU, GPU, NPU stitched</span></div>
+        <div class="cv-row"><span class="cv-k">Latest</span><span class="cv-v">Core Ultra Series 3 (Panther Lake, 2026, Intel 18A)</span></div>
+        <div class="cv-row"><span class="cv-k">Example laptop</span><span class="cv-v">Dell XPS 13, ThinkPad X1</span></div>
+      </div>
+    </div>
+
+    <!-- AMD -->
+    <div class="cv-card amd">
+      <div class="cv-header">
+        <span class="cv-brand">AMD</span>
+        <span class="cv-tag">Chiplet</span>
+      </div>
+      <img class="cv-img" src="assets/ryzen-die.jpg" alt="AMD Ryzen die">
+      <div class="cv-specs">
+        <div class="cv-row"><span class="cv-k">ISA</span><span class="cv-v">x86-64</span></div>
+        <div class="cv-row"><span class="cv-k">Designer</span><span class="cv-v">AMD</span></div>
+        <div class="cv-row"><span class="cv-k">Fab</span><span class="cv-v">TSMC (Taiwan)</span></div>
+        <div class="cv-row"><span class="cv-k">Style</span><span class="cv-v">Chiplet — CCDs + I/O die</span></div>
+        <div class="cv-row"><span class="cv-k">Latest</span><span class="cv-v">Ryzen AI 300 Series (Strix Halo, 2025)</span></div>
+        <div class="cv-row"><span class="cv-k">Example laptop</span><span class="cv-v">ASUS ROG Zephyrus, Framework 13</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cv-footnote">
+    <b>Fourth option (worth knowing about):</b> <b style="color:var(--brand)">Qualcomm Snapdragon X Elite / X2 Elite</b> — an ARM chip for Windows laptops (Copilot+ PCs like the Surface Pro / Laptop 7). Designed by Qualcomm, manufactured by TSMC. Runs Windows on ARM natively, x86 apps through emulation. Rare today, but the ARM-on-Windows push is real. This is why the Python installer for Windows now offers a separate <code>ARM64</code> build.
+  </div>
+
+  <a href="#s4" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 4 answers →</span>
+    <span class="q-text">The design exists as a file on a computer at Apple. <b>How do you actually paint that design onto silicon at 3-nanometre precision — thinner than a strand of DNA?</b> One machine on Earth can do it.</span>
+  </a>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span> instruction sets, chip design, and the ARM/x86/RISC-V rivalry:
+    <ul>
+      <li>Wikipedia — <a href="https://en.wikipedia.org/wiki/Instruction_set_architecture" target="_blank" rel="noopener">Instruction set architecture</a>, <a href="https://en.wikipedia.org/wiki/ARM_architecture_family" target="_blank" rel="noopener">ARM architecture</a>, <a href="https://en.wikipedia.org/wiki/X86-64" target="_blank" rel="noopener">x86-64</a>, <a href="https://en.wikipedia.org/wiki/RISC-V" target="_blank" rel="noopener">RISC-V</a>, <a href="https://en.wikipedia.org/wiki/Arm_Holdings" target="_blank" rel="noopener">ARM Holdings</a></li>
+      <li>Apple — <a href="https://support.apple.com/en-us/HT211861" target="_blank" rel="noopener">About Rosetta 2</a> (Apple's x86-on-ARM emulator)</li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=CQywX4iaySw" target="_blank" rel="noopener">Asianometry: "The Simplified History of RISC-V"</a></li>
+      <li>Python — <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a> (see how many installer variants there are per OS)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 4 -->
+<section class="part" id="s4">
+  <div class="p-head"><div class="p-num">4</div>
+    <h2 class="p-title">The pen — EUV lithography</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>Apple has done the design. TSMC has the wafer. How does the design get from a computer file <em>onto</em> the silicon? Through <b>lithography</b>. Light shines through a stencil (called a "mask"), and where it hits, the transistor patterns get etched.</p>
+
+  <div class="box b-say">
+    <span class="lbl">An analogy</span>
+    <p>Think of it like drawing. The wafer is your paper. The mask is the stencil. The light is the pen. But the pen has to draw features that are only <b>3 nanometres</b> wide — thinner than a strand of your DNA (about 2.5 nm) and 2,300 times thinner than a human blood cell.</p>
+  </div>
+
+  <h3>The pen is EUV light — 13.5 nm wavelength</h3>
+  <p>Regular UV light isn't sharp enough. Modern chips use <b>EUV (Extreme Ultraviolet) light</b> at just <b>13.5 nanometres wavelength</b> — so thin it can only travel in vacuum and gets absorbed by almost anything, even air. To generate it, a 50 kW laser hits a droplet of molten tin <b>50,000 times per second</b>, creating a superheated plasma that emits the EUV. Then that light is bounced off mirrors polished to less than one atom of imperfection.</p>
+
+  <figure>
+    <img src="assets/asml-euv.jpg" alt="ASML EUV lithography machine" style="max-height:55vh">
+    <figcaption>An ASML EUV lithography machine — the size of a small bus, 180 tonnes, ~$200M, ships in three Boeing 747s.</figcaption>
+  </figure>
+
+  <h3>Only ONE company makes this machine — ASML (Netherlands)</h3>
+  <p><b>ASML</b>, based in Veldhoven, Netherlands, is the <em>only</em> company on Earth that makes EUV lithography machines. Every advanced chip on the planet — Apple's M4 Pro in your MacBook, NVIDIA's H100 in every AI data centre, AMD's Ryzen, Qualcomm's Snapdragon — was printed by an ASML machine. Only ~50 machines are made per year worldwide.</p>
+
+  <div class="box b-key">
+    <span class="lbl">Also worth knowing</span>
+    <p>ASML doesn't build these machines alone — they integrate parts from thousands of suppliers. <b>Zeiss (Germany)</b> makes the mirrors. <b>TRUMPF (Germany)</b> makes the CO₂ laser. It is arguably the most sophisticated machine humans have ever built.</p>
+  </div>
+
+  <a href="#s5" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 5 answers →</span>
+    <span class="q-text">We have the machines. But <b>who runs the factories, and why is 90% of the world's advanced chip production on one island?</b></span>
+  </a>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span> EUV physics, ASML, and how nanometre labels became marketing:
+    <ul>
+      <li>Wikipedia — <a href="https://en.wikipedia.org/wiki/Extreme_ultraviolet_lithography" target="_blank" rel="noopener">Extreme ultraviolet lithography</a>, <a href="https://en.wikipedia.org/wiki/ASML_Holding" target="_blank" rel="noopener">ASML Holding</a>, <a href="https://en.wikipedia.org/wiki/5_nm_process" target="_blank" rel="noopener">5 nm process</a>, <a href="https://en.wikipedia.org/wiki/2_nm_process" target="_blank" rel="noopener">2 nm process</a></li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=f0gMdGrVteI" target="_blank" rel="noopener">Veritasium: "The Insane Engineering of ASML's EUV Machine"</a> (30 min — the definitive explainer)</li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=YHFRc5CQNyk" target="_blank" rel="noopener">Asianometry: "The Making of ASML's Tin-Plasma EUV Light Source"</a></li>
+      <li>ASML official — <a href="https://www.asml.com/en/technology/lithography-principles/euv-lithography" target="_blank" rel="noopener">asml.com — EUV lithography explained</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 5 -->
+<section class="part" id="s5">
+  <div class="p-head"><div class="p-num">5</div>
+    <h2 class="p-title">The factory — TSMC uses the machines</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>The single most common confusion in this area: <b>ASML makes the machines. TSMC operates the factory.</b> They are two completely different businesses.</p>
+
+  <div class="box b-say">
+    <span class="lbl">The printing-press analogy</span>
+    <p>ASML is the company that builds the printing press. TSMC is the newspaper that prints the news. Both are highly advanced. Both irreplaceable. But nobody expects Heidelberger — the world's biggest printing-press maker — to also run a newspaper. Same idea. Making the machine and running the factory are different jobs.</p>
+  </div>
+
+  <h3>What TSMC does</h3>
+  <p>TSMC (Taiwan Semiconductor Manufacturing Company) buys ASML machines and combines them with hundreds of other tools to run a <b>fab</b> (fabrication plant). They take the design file from Apple, load it into the ASML machines, and turn out chips. One chip takes <b>3–4 months</b> to process, going through <b>1,000+ steps</b> and <b>100+ passes of EUV lithography</b>. TSMC makes chips for Apple, AMD, NVIDIA, Qualcomm, MediaTek — pretty much everyone <em>except</em> Intel (who has their own fabs).</p>
+
+  <figure>
+    <img src="assets/tsmc-fab.jpg" alt="TSMC fabrication plant" style="max-height:50vh">
+    <figcaption>A TSMC fab. Air inside is 10,000× cleaner than a hospital operating theatre. No dust, no skin cells, workers wear head-to-toe "bunny suits".</figcaption>
+  </figure>
+
+  <div class="box b-key">
+    <span class="lbl">The geopolitics — in one sentence</span>
+    <p>TSMC is in Taiwan. It produces roughly <b>90% of the world's advanced chips</b>. That is why every China-Taiwan headline is secretly a chip story. If TSMC stopped tomorrow, the entire tech industry would freeze within 6 months. It's also why the US passed the CHIPS Act ($52 billion for domestic chip manufacturing) and why TSMC is building fabs in Arizona and Japan.</p>
+  </div>
+
+  <p><b>Intel is the exception.</b> They both <em>design</em> AND <em>manufacture</em> chips — the only major player that still does both. They still buy machines from ASML, but they run their own fabs. That's why you'll hear "Intel Foundry" as a separate business unit now.</p>
+
+  <a href="#s6" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 6 answers →</span>
+    <span class="q-text">TSMC prints millions of chips from the same wafer. But <b>why does one become an "i9" while another becomes an "i5"?</b> A quality-control secret hiding in plain sight.</span>
+  </a>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span> TSMC, foundries, the chip wars, geopolitics:
+    <ul>
+      <li>Wikipedia — <a href="https://en.wikipedia.org/wiki/TSMC" target="_blank" rel="noopener">TSMC</a>, <a href="https://en.wikipedia.org/wiki/Semiconductor_fabrication_plant" target="_blank" rel="noopener">Semiconductor fabrication plant</a>, <a href="https://en.wikipedia.org/wiki/CHIPS_and_Science_Act" target="_blank" rel="noopener">CHIPS and Science Act (US)</a>, <a href="https://en.wikipedia.org/wiki/Foundry_model" target="_blank" rel="noopener">Foundry model</a>, <a href="https://en.wikipedia.org/wiki/Intel_Foundry" target="_blank" rel="noopener">Intel Foundry</a></li>
+      <li>TSMC official — <a href="https://www.tsmc.com/english" target="_blank" rel="noopener">tsmc.com</a></li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=cGWc-l9RwlM" target="_blank" rel="noopener">Asianometry: "TSMC's American Adventure"</a> (Arizona fab)</li>
+      <li>Book — <a href="https://www.christophermiller.net/semiconductors" target="_blank" rel="noopener">Chris Miller — "Chip War"</a> (2022 — the definitive book on the chip industry)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 6 -->
+<section class="part" id="s6">
+  <div class="p-head"><div class="p-num">6</div>
+    <h2 class="p-title">Chip binning — the i9 / i7 / i5 mystery revealed</h2>
+    <span class="p-mins">≈ 4 min</span></div>
+
+  <p>A fact almost nobody mentions. <b>Intel does not manufacture the i9, i7, i5, and i3 as separate chips.</b> They all come from the <em>same</em> silicon die. The difference is defects.</p>
+
+  <h3>How chip binning works</h3>
+  <p>When TSMC or Intel processes a wafer, not every chip on it is perfect. Tiny dust particles, laser misalignments, or chemistry variations cause microscopic flaws. When each chip is tested, the outcome is <em>graded</em>:</p>
+  <ul>
+    <li><b>All 8 cores work perfectly, high clock speed</b> → Sold as the top model (was Core i9, now <b>Core Ultra 9</b> / <b>X9</b>)</li>
+    <li><b>2 cores are defective</b> → Those cores are permanently disabled by laser-fusing eFuses. Repackaged and sold as an <b>i7 / Core Ultra 7</b>.</li>
+    <li><b>4 cores dead or clock speed lower</b> → Sold as an <b>i5 / Core Ultra 5</b>.</li>
+    <li><b>Even more dead</b> → Sold as an <b>i3 / Core 3</b> or older Pentium/Celeron parts.</li>
+  </ul>
+
+  <div class="box b-key">
+    <span class="lbl">Naming — Intel renamed everything in 2023 · worth knowing</span>
+    <p>Old branding (2008–2023): <b>Core i3 · i5 · i7 · i9</b>, with model numbers like <code>i5-2500K</code> (2011, 2nd gen Sandy Bridge) or <code>i9-13900K</code> (2022, 13th gen). The number after the dash told you the generation.</p>
+    <p>New branding (2023–now): <b>Core Ultra 5 · 7 · 9</b> (premium), <b>Core 3 · 5 · 7</b> (mainstream, dropped the "i"). Latest generation is <b>Core Ultra Series 3</b> (Panther Lake, CES 2026) — the first chips built on Intel 18A. A new <b>X9 / X7</b> tier was added for the strongest integrated Arc graphics.</p>
+    <p>Same binning logic. Same story. Just a different sticker on the box. The "9" is still the top bin. The "5" is still cut-down silicon.</p>
+  </div>
+
+  <div class="bin-grid">
+    <div class="bin-card i9">
+      <h5>All 8 cores work</h5>
+      <div class="die">
+        <div class="core">1</div><div class="core">2</div><div class="core">3</div><div class="core">4</div>
+        <div class="core">5</div><div class="core">6</div><div class="core">7</div><div class="core">8</div>
+      </div>
+      <div class="tier">Core i9 / Ultra 9</div>
+      <div class="lbl">Premium bin · Highest price</div>
+    </div>
+    <div class="bin-card i7">
+      <h5>2 cores defective</h5>
+      <div class="die">
+        <div class="core">1</div><div class="core">2</div><div class="core">3</div><div class="core dead"></div>
+        <div class="core">5</div><div class="core">6</div><div class="core dead"></div><div class="core">8</div>
+      </div>
+      <div class="tier">Core i7 / Ultra 7</div>
+      <div class="lbl">Bad cores fused off · Mid-tier price</div>
+    </div>
+    <div class="bin-card i5">
+      <h5>4 cores defective</h5>
+      <div class="die">
+        <div class="core">1</div><div class="core dead"></div><div class="core">3</div><div class="core dead"></div>
+        <div class="core">5</div><div class="core dead"></div><div class="core">7</div><div class="core dead"></div>
+      </div>
+      <div class="tier">Core i5 / Ultra 5</div>
+      <div class="lbl">Half the cores disabled · Budget price</div>
+    </div>
+  </div>
+
+  <p>A real Intel Core i9-13900K die shot from a scanning electron microscope — the actual silicon, with individual cores visible. When a die like this fails testing on some cores, those get disabled and it ships as an i7 or i5:</p>
+  <figure>
+    <img src="assets/intel-13900k-die-annotated.jpg" alt="Real Intel Core i9-13900K die shot with labels" style="max-height:55vh">
+    <figcaption>Real die shot of the Intel Core i9-13900K, labelled. The 8 large blocks on the left are P-cores, the 16 smaller ones on the right are E-cores. All identical silicon. Binning decides which model this ships as.</figcaption>
+  </figure>
+
+  <div class="box b-say">
+    <span class="lbl">The insight</span>
+    <p>Your CPU is <em>literally partially broken</em>. It's not a design difference — it's a quality-control outcome. When you buy a Core Ultra 5 (or an old i5), you're getting a Core Ultra 9 die with defects laser-fused off. This is why chip manufacturing is called "the most controlled process on Earth" — even with all that control, defects still happen, and binning turns those defects into a business model.</p>
+  </div>
+
+  <div class="box b-key">
+    <span class="lbl">One honest nuance</span>
+    <p>It's not <em>always</em> defect-driven. When demand for i5s exceeds the supply of naturally defective i9s, Intel takes perfectly working i9 dies and disables cores on purpose to fill the lower-tier orders. That's called <b>artificial binning</b>. AMD does the same with Ryzen. Even Apple binned the M3 Ultra (Mac Studio) using the same trick.</p>
+  </div>
+
+  <a href="#s7" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 7 answers →</span>
+    <span class="q-text">The die is graded, packaged, and shipped. But <b>put an Intel chip next to an Apple chip — why do they look so radically different?</b></span>
+  </a>
+
+  <div class="deep">
+    <b>Depth</b> <span class="arrow">→</span> Full binning history (AMD Deneb tri-core CPUs, unlockable disabled cores in the K10 era):
+    <ul>
+      <li>External: <a href="https://www.techspot.com/article/2039-chip-binning/" target="_blank" rel="noopener">TechSpot: "What is Chip Binning?"</a>, <a href="https://en.wikipedia.org/wiki/Product_binning" target="_blank" rel="noopener">Wikipedia: Product binning</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 7 -->
+<section class="part" id="s7">
+  <div class="p-head"><div class="p-num">7</div>
+    <h2 class="p-title">The packaged chip — traditional Intel vs modern Apple</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>After the die is done, it gets glued to a small green board, capped with a metal <b>heat spreader</b>, and shipped. Put two chips side by side and the biggest difference in modern computing becomes visible:</p>
+
+  <div class="fig-two">
+    <figure>
+      <img src="assets/intel-13900k-die-annotated.jpg" alt="Intel Core i9 die">
+      <figcaption><b>Traditional Intel CPU</b> — the die contains only CPU cores (8P + 16E), cache, and a weak integrated GPU. RAM is on the motherboard. Real GPU is a separate NVIDIA/AMD card. SSD is another chip. Everything is <em>separate</em>, connected by slow PCIe wires.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/apple-m4-pro-cpu.jpg" alt="Apple M4 Pro die with 14-core CPU highlighted">
+      <figcaption><b>Modern Apple M4 Pro SoC</b> — the die contains CPU (14 cores) + GPU (20 cores) + Neural Engine (16 cores) + Media Engine + Thunderbolt controllers + Memory controller. RAM sits <em>right next to</em> the die and is shared. This is a <b>SoC (System on Chip)</b>.</figcaption>
+    </figure>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">The key insight</span>
+    <p>Intel's chip is a <b>CPU</b>. Apple's chip is a <b>SoC — a whole computer on one piece of silicon</b>. This is why an M4 Pro MacBook feels so much snappier than a similarly-specced Intel laptop, even at lower clock speeds. Everything is <em>right there</em> on the same die — no PCIe wires to cross.</p>
+  </div>
+
+  <a href="#s8" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 8 answers →</span>
+    <span class="q-text">Apple's SoC feels like a leap. But <b>when did this happen, and why?</b> A single 55-year timeline explains the whole path — Intel 4004 (1971) → free lunch → the 2005 wall → multi-core → Apple M1.</span>
+  </a>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     PART 2 · MENTAL MODEL
+     ═════════════════════════════════════════════════════════ -->
+
+<!-- SECTION 8 -->
+<section class="part" id="s8">
+  <div class="p-head"><div class="p-num">8</div>
+    <h2 class="p-title">The 55-year timeline — one picture, no fluff</h2>
+    <span class="p-mins">≈ 2 min</span></div>
+
+  <p>The whole reason concurrency exists as a problem today can be told on one timeline. Here's the compressed version:</p>
+
+  <div class="tl">
+    <div class="tl-row"><div class="tl-year">1971</div><div class="tl-title">Intel 4004 — the first commercial microprocessor</div><div class="tl-note">740 kHz clock. 2,300 transistors. About 92,000 instructions/second.</div></div>
+    <div class="tl-row"><div class="tl-year">1978–1993</div><div class="tl-title">The x86 era begins — Intel 8086, 386, Pentium</div><div class="tl-note">100 MHz range by 1995. Each generation doubled the clock speed. Software got faster automatically ("the free lunch").</div></div>
+    <div class="tl-row"><div class="tl-year">1999</div><div class="tl-title">AMD Athlon breaks 1 GHz</div><div class="tl-note">First mainstream desktop chip past 1 GHz.</div></div>
+    <div class="tl-row"><div class="tl-year">2003</div><div class="tl-title">Pentium 4 reaches ~3.8 GHz</div><div class="tl-note">Chip runs hot. Really hot. Cooling becomes the bottleneck.</div></div>
+    <div class="tl-row wall"><div class="tl-year">2005 · THE WALL</div><div class="tl-title">"The Free Lunch is Over" — Herb Sutter</div><div class="tl-note">Physics stops the clock-speed race. Higher clocks generate too much heat to cool. Herb Sutter (C++ committee chair) publishes his famous <a href="http://www.gotw.ca/publications/concurrency-ddj.htm" target="_blank" rel="noopener">Dr. Dobb's article</a> that puts the whole software industry on notice: <em>"the free lunch is over — every developer must now learn concurrency."</em> Chipmakers stop racing on frequency and start adding <b>cores</b>. This is why concurrency became a mainstream problem for developers.</div></div>
+    <div class="tl-row pivot"><div class="tl-year">2006</div><div class="tl-title">Intel Core Duo — the multi-core pivot</div><div class="tl-note">2 cores on one chip. Software that wants to be faster must now be written to use multiple cores.</div></div>
+    <div class="tl-row"><div class="tl-year">2017</div><div class="tl-title">AMD Ryzen — 8 cores at consumer prices</div><div class="tl-note">The core count race is on.</div></div>
+    <div class="tl-row pivot"><div class="tl-year">2020</div><div class="tl-title">Apple M1 — the SoC revolution</div><div class="tl-note">CPU + GPU + NPU + RAM all on one die. Not just more cores — a whole new architecture. Everyone else scrambles to copy it.</div></div>
+    <div class="tl-row"><div class="tl-year">Today (2026)</div><div class="tl-title">Your M4 Pro — 14 cores, 4.5 GHz, 55 billion transistors</div><div class="tl-note">Clock speed barely changed since 2005 (still ~4–5 GHz). What changed is the number of cores.</div></div>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">In one sentence</span>
+    <p>Clock speed hit a wall in 2005. We haven't gotten meaningfully faster clocks in 20 years. All the speedup since then has come from more cores. And that is exactly why concurrency in Python matters — because Python by default uses one of them.</p>
+  </div>
+
+  <a href="#s9" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 9 answers →</span>
+    <span class="q-text">The timeline shows Apple M1 (2020) as the last big pivot. But <b>what did Apple actually do differently that made the M-series feel like a different kind of machine?</b> The SoC advantage, in one table.</span>
+  </a>
+</section>
+
+<!-- SECTION 9 -->
+<section class="part" id="s9">
+  <div class="p-head"><div class="p-num">9</div>
+    <h2 class="p-title">Why Apple is faster — the SoC</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>The M1 in 2020 was not just faster than an equivalent Intel chip. It felt like a different <em>kind</em> of machine. Here's why, in one table:</p>
+
+  <table>
+    <tr><th></th><th>Traditional Intel PC</th><th>Apple M-series SoC</th></tr>
+    <tr><td><b>CPU</b></td><td>On the CPU chip</td><td>On the SoC</td></tr>
+    <tr><td><b>GPU</b></td><td>Separate NVIDIA/AMD card, PCIe wires</td><td>On the SoC — same silicon</td></tr>
+    <tr><td><b>RAM</b></td><td>Separate DIMMs on motherboard</td><td>Unified memory next to the die — CPU and GPU share it</td></tr>
+    <tr><td><b>Neural Engine</b></td><td>Not present (or on a separate accelerator card)</td><td>On the SoC — 16 cores, 38 TOPS</td></tr>
+    <tr><td><b>Distance between CPU and RAM</b></td><td>Several centimetres of PCB trace</td><td>A few millimetres — no PCIe hop</td></tr>
+    <tr><td><b>Memory copy for GPU work</b></td><td>Yes — CPU → PCIe → GPU memory</td><td>No — same memory pool</td></tr>
+  </table>
+
+  <div class="box b-say">
+    <span class="lbl">Why this feels faster</span>
+    <p>Electricity travels at about 30 cm per nanosecond. On an Intel laptop, the CPU asks the GPU for something and has to wait for that signal to travel across the board and back. On the M-series SoC, everything is millimetres apart on the same silicon — the wait all but disappears. Combined with dedicated Neural Engine hardware and unified memory, the M-series doesn't just run faster; it wastes less energy doing it. That's why fans stay off, batteries last all day, and Final Cut renders 4K video on a laptop.</p>
+  </div>
+
+  <h3>Intel is now copying this approach</h3>
+  <p>Intel's "Core Ultra" chips (2024+) use a similar <b>tile-based</b> architecture — small chip modules for CPU, GPU, NPU stitched together. Called Meteor Lake / Lunar Lake / Arrow Lake / Panther Lake. Their newest process is <b>Intel 18A</b> — often called "1.8 nm".</p>
+
+  <div class="box b-key">
+    <span class="lbl">The honest truth about “2 nm” and “18A”</span>
+    <p>“Intel 18A” reads as “1.8 Ångstroms”. “TSMC N2” reads as “2 nanometres”. <b>Neither number is the actual size of a transistor.</b> The real contacted poly pitch on Intel 18A is <b>50 nm</b>; on TSMC N2 it's 48 nm. Actual gate lengths are still around 20 nm. The “2 nm” label is a marketing generation-name, not a physical measurement. Since about the 10 nm node, every “nm” number has been marketing.</p>
+  </div>
+
+  <a href="#s10" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 10 answers →</span>
+    <span class="q-text"><b>Hardware side of the mystery: done.</b> We know the chip, the language, the design, the factory, the timeline. Now the three questions from Section 0 flip to the software side. First one: <b>what IS a "core" actually?</b> Time to pivot from silicon to software.</span>
+  </a>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span> the SoC revolution and the three chip families in more detail:
+    <ul>
+      <li>Wikipedia — <a href="https://en.wikipedia.org/wiki/Apple_silicon" target="_blank" rel="noopener">Apple silicon</a>, <a href="https://en.wikipedia.org/wiki/System_on_a_chip" target="_blank" rel="noopener">System on a chip</a>, <a href="https://en.wikipedia.org/wiki/Meteor_Lake" target="_blank" rel="noopener">Meteor Lake (Intel Core Ultra Series 1)</a>, <a href="https://en.wikipedia.org/wiki/Panther_Lake" target="_blank" rel="noopener">Panther Lake (Series 3, 2026)</a>, <a href="https://en.wikipedia.org/wiki/Zen_5" target="_blank" rel="noopener">AMD Zen 5</a></li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=xUuwvJt0hDE" target="_blank" rel="noopener">Marques Brownlee: "Apple's M4 Explained"</a></li>
+      <li>Intel official — <a href="https://www.intel.com/content/www/us/en/products/details/processors/core-ultra.html" target="_blank" rel="noopener">Intel Core Ultra product page</a></li>
+      <li>AnandTech — <a href="https://www.anandtech.com/show/16252/mac-mini-apple-m1-tested" target="_blank" rel="noopener">The Apple M1 review</a> (2020 — the definitive technical breakdown)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     PART 3 · NOW - THE PYTHON
+     ═════════════════════════════════════════════════════════ -->
+
+<!-- SECTION 10 -->
+<section class="part" id="s10">
+  <div class="p-head"><div class="p-num">10</div>
+    <h2 class="p-title">What is a core?</h2>
+    <span class="p-mins">≈ 2 min</span></div>
+
+  <p>With the chip traced from rock to package, “core” stops being a vague word.</p>
+
+  <div class="box b-say">
+    <span class="lbl">In one paragraph</span>
+    <p>A <b>core</b> is one physical worker inside the CPU section of the chip. It's a block of silicon carved out during lithography that can execute one instruction at a time. On this M4 Pro, there are <b>14 cores</b>: 10 Performance cores for heavy work, 4 Efficiency cores for background tasks. On the die shot in the previous section, those are the 14 rectangular blocks. All 14 can run at the same instant, doing 14 completely independent things.</p>
+  </div>
+
+  <div class="box b-demo">
+    <span class="lbl">Try it yourself</span>
+<pre><span class="cm"># Mac (Apple Silicon):</span>
+sysctl -n hw.ncpu hw.physicalcpu hw.perflevel0.physicalcpu hw.perflevel1.physicalcpu
+<span class="cm"># → 14          (total)</span>
+<span class="cm"># → 14          (14 physical cores)</span>
+<span class="cm"># → 10          (10 Performance cores)</span>
+<span class="cm"># → 4           (4 Efficiency cores)</span>
+
+<span class="cm"># Windows (PowerShell):</span>
+Get-CimInstance Win32_Processor | Select-Object NumberOfCores, NumberOfLogicalProcessors
+<span class="cm"># NumberOfCores : 8</span>
+<span class="cm"># NumberOfLogicalProcessors : 16   (SMT/Hyper-Threading enabled → 2 threads per core)</span>
+
+<span class="cm"># Python (works everywhere):</span>
+python3 -c <span class="cm">"import os; print(os.cpu_count())"</span>
+<span class="cm"># → 14 on this Mac, 16 on an SMT Intel/AMD laptop, etc.</span></pre>
+  </div>
+
+  <a href="#s11" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 11 answers →</span>
+    <span class="q-text">A core is a physical worker. But then the OS keeps talking about "threads". <b>Are threads and cores the same thing? Why does one core show as 2 "logical processors" on Intel?</b> The single most confused word in this whole topic.</span>
+  </a>
+</section>
+
+<!-- SECTION 11 -->
+<section class="part" id="s11">
+  <div class="p-head"><div class="p-num">11</div>
+    <h2 class="p-title">What is a thread? (there are two kinds)</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>The word "thread" trips up almost everyone because it's used at <em>two different layers</em>.</p>
+
+  <table>
+    <tr><th>Layer</th><th>What it is</th><th>How many on this Mac</th></tr>
+    <tr><td><b>Hardware thread</b> (a.k.a. logical processor)</td><td>An execution slot on a physical core. On Intel/AMD, each P-core has 2 slots (Hyper-Threading / SMT). On Apple, each core has 1 slot.</td><td><b>14</b> (Apple = 1 slot per core)</td></tr>
+    <tr><td><b>OS thread</b> (a.k.a. software thread)</td><td>A unit of work the operating system can schedule. Managed by macOS/Windows/Linux.</td><td><b>Thousands</b> — the OS time-slices them onto the 14 hardware slots</td></tr>
+  </table>
+
+  <h3>Apple vs Intel/AMD — a real difference</h3>
+  <ul>
+    <li><b>Apple M-series</b> — no Hyper-Threading. 14 cores = 14 hardware threads.</li>
+    <li><b>Intel</b> — P-cores use Hyper-Threading. A 10-P-core + 6-E-core chip shows as <b>26</b> hardware threads (10×2 + 6×1).</li>
+    <li><b>AMD Ryzen</b> — SMT on all cores. 16-core Ryzen shows as <b>32</b> threads.</li>
+  </ul>
+
+  <div class="box b-say">
+    <span class="lbl">An analogy</span>
+    <p>A core is a worker's desk. A hardware thread is a chair at that desk. Apple gives each desk one chair. Intel puts <em>two chairs</em> at each P-core desk — so when one worker is on lunch break waiting for memory to arrive, another worker can sit down and keep the desk busy. Apple's approach: fewer chairs, but each chair is faster.</p>
+  </div>
+
+  <p>A <b>Python thread</b> (from the <code>threading</code> module) is a real OS thread. So you can create thousands of them. But whether they can actually run in <em>parallel</em> depends on the GIL — Section 15.</p>
+
+  <a href="#s12" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 12 answers →</span>
+    <span class="q-text">Threads are just OS units of work. So <b>if 14 Python threads run on a 14-core Mac, do all 14 cores light up?</b> Time to run the code and watch Activity Monitor. The result is surprising.</span>
+  </a>
+</section>
+
+<!-- SECTION 12 -->
+<section class="part" id="s12">
+  <div class="p-head"><div class="p-num">12</div>
+    <h2 class="p-title"><code>threading</code> — the Activity Monitor demo</h2>
+    <span class="p-mins">≈ 4 min</span></div>
+
+  <p>Real threading code, with Activity Monitor watching. This is where the mystery from Section 0 starts to make sense.</p>
+
+  <div class="box b-demo">
+    <span class="lbl">Try it yourself · Demo 2</span>
+<pre># Spawn 14 Python threads, each doing pure CPU work
+python cpu-demo.py 2 14</pre>
+    <p>Activity Monitor now shows three surprises:</p>
+    <ol>
+      <li>Python's CPU is at ~100%, not 1,400%.</li>
+      <li>Total system CPU is still around 7–10%.</li>
+      <li>Only <b>one</b> CPU core is at 100%. Sometimes it hops between cores.</li>
+    </ol>
+  </div>
+
+  <div class="box b-key">
+    <span class="lbl">The surprise</span>
+    <p>That command spawns <b>14 Python threads</b>. Each is a real OS thread. The Mac has 14 physical cores. Expectation: 14 cores at ~100% each. Reality: <b>one core</b>. The reason — Python has a lock called the <b>GIL</b> that lets only one Python thread execute bytecode at a time. All 14 threads exist; they just take turns on one core.</p>
+  </div>
+
+  <p>So more OS threads did <em>not</em> unlock more cores. This is the surprise that makes people say “Python is slow.” It's not slow — it's using ONE core. The fix depends on <em>why</em> your program is waiting. That's the difference between concurrency and parallelism.</p>
+
+  <a href="#s13" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 13 answers →</span>
+    <span class="q-text">Fourteen threads. One core. Something is blocking Python from spreading work across cores. Before we hunt for the villain, one crucial distinction: <b>doing many things "at once" (concurrency) vs. doing many things "at the same instant" (parallelism)</b> — they are NOT the same word.</span>
+  </a>
+</section>
+
+<!-- SECTION 13 -->
+<section class="part" id="s13">
+  <div class="p-head"><div class="p-num">13</div>
+    <h2 class="p-title">Concurrency vs Parallelism</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>These two words get used interchangeably. They shouldn't. Rob Pike (co-creator of Go) gave the cleanest definition:</p>
+
+  <div class="box b-say">
+    <span class="lbl">Rob Pike's definition</span>
+    <p><b>Concurrency</b> is about <em>dealing with</em> many things at once. It's the <b>structure</b> — how you organise code so multiple tasks can be in flight.<br>
+    <b>Parallelism</b> is about <em>doing</em> many things at once. It's the <b>execution</b> — actually running multiple tasks in the same instant on multiple cores.</p>
+    <p>Concurrency is possible on a single core (tasks take turns). Parallelism requires multiple cores.</p>
+  </div>
+
+  <div class="box b-key">
+    <span class="lbl">Historical note — concurrency didn't start in 2005</span>
+    <p>Concurrency as an idea is <b>old</b>. UNIX had processes in 1970. IBM mainframes did time-sharing (many users on one CPU) in the 1960s. Erlang was built for telephone switching in the 1980s. On a single core, an OS could always interleave many tasks — that's concurrency.</p>
+    <p>What changed in <b>2005</b> is that every laptop suddenly had multiple cores, so <b>parallelism</b> — actual simultaneous execution on separate cores — became something <em>every</em> developer had to think about, not just OS kernel writers. Rob Pike's talk (below) crystallised the distinction for a generation.</p>
+  </div>
+
+  <h3>Which Python tool gives which?</h3>
+  <table>
+    <tr><th>Tool</th><th>Concurrent?</th><th>Parallel on many cores?</th><th>Best for</th></tr>
+    <tr><td><code>asyncio</code></td><td>Yes — one thread interleaves tasks</td><td>No</td><td>Many I/O waits (APIs, DB, files)</td></tr>
+    <tr><td><code>threading</code></td><td>Yes</td><td>Not for Python bytecode (GIL). Yes for I/O and C extensions.</td><td>Blocking I/O libraries (<code>requests</code>, DB drivers)</td></tr>
+    <tr><td><code>multiprocessing</code></td><td>Yes</td><td><b>Yes</b> — separate processes, one GIL each</td><td>CPU-heavy computation</td></tr>
+  </table>
+
+  <a href="#s14" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 14 answers →</span>
+    <span class="q-text">Three tools. Two are concurrent. Only one is parallel on pure Python. Start with the elegant one: <b>what IS <code>asyncio</code>, how does it actually work, and why does one thread feel like ten?</b></span>
+  </a>
+
+  <div class="deep">
+    <b>The definitive talk on this exact topic</b> <span class="arrow">→</span>
+    <ul>
+      <li>Video — <a href="https://www.youtube.com/watch?v=oV9rvDllKEg" target="_blank" rel="noopener">Rob Pike: "Concurrency Is Not Parallelism"</a> (30 min, the gopher/wheelbarrow analogy)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 14 -->
+<section class="part" id="s14">
+  <div class="p-head"><div class="p-num">14</div>
+    <h2 class="p-title"><code>async</code> / <code>await</code> / <code>asyncio</code></h2>
+    <span class="p-mins">≈ 5 min</span></div>
+
+  <p>Section 13 introduced three tools. <code>asyncio</code> is the elegant one for waiting. Everything about it comes down to <b>one concept</b> — the coroutine — and <b>one mental model</b> — cooperative multitasking. Start with the concept.</p>
+
+  <h3>What is a coroutine? — the concept behind all of this</h3>
+  <p>A regular function runs to completion the moment it's called. A <b>coroutine</b> can stop mid-execution, hand control back, and resume later exactly where it stopped. That is the whole idea. Everything else in <code>asyncio</code> — the keywords, the event loop, the library — exists to create, schedule, and coordinate coroutines.</p>
+
+<pre><span class="cm"># Regular function — runs immediately, returns a value</span>
+def greet():
+    return "Hello!"
+
+print(greet())
+<span class="cm"># → Hello!</span>
+
+
+<span class="cm"># Coroutine function — returns a coroutine OBJECT, doesn't run yet</span>
+async def greet_async():
+    return "Hello!"
+
+print(greet_async())
+<span class="cm"># → &lt;coroutine object greet_async at 0x104f8b920&gt;</span>
+<span class="cm">#   Not "Hello!". A coroutine object. Nothing has run.</span>
+
+
+<span class="cm"># To actually run it, hand it to asyncio:</span>
+import asyncio
+print(asyncio.run(greet_async()))
+<span class="cm"># → Hello!</span></pre>
+
+  <h3>The five pieces — each does one very specific job</h3>
+  <table>
+    <tr><th>Piece</th><th>What it is</th><th>Its one job</th></tr>
+    <tr>
+      <td><b><code>async</code></b></td>
+      <td>Python keyword</td>
+      <td>Written <b>before <code>def</code></b>. Turns a function into a <b>coroutine function</b> (a pausable function). Nothing else.</td>
+    </tr>
+    <tr>
+      <td><b><code>await</code></b></td>
+      <td>Python keyword</td>
+      <td>Written <b>inside a coroutine</b>. <b>Pauses</b> the coroutine at that line and yields control to the event loop.</td>
+    </tr>
+    <tr>
+      <td><b>Coroutine</b></td>
+      <td>An object</td>
+      <td>The pausable function itself. Created automatically when an <code>async def</code> function is called. Does nothing on its own.</td>
+    </tr>
+    <tr>
+      <td><b>Event loop</b></td>
+      <td>A Python runtime object</td>
+      <td>The manager. <b>Actually runs</b> coroutines: picks one, runs it until <code>await</code>, pauses it, picks the next, and so on.</td>
+    </tr>
+    <tr>
+      <td><b><code>asyncio</code></b></td>
+      <td>Standard library</td>
+      <td>Ships with Python. Provides the event loop plus helpers (<code>sleep</code>, <code>gather</code>, <code>TaskGroup</code>) and — critically — <code>asyncio.run()</code> which <b>starts</b> the event loop.</td>
+    </tr>
+  </table>
+
+  <div class="box b-key">
+    <span class="lbl">The one misconception to kill — <code>async</code>/<code>await</code> do NOT create the event loop</span>
+    <p>Writing <code>async def foo():</code> creates a coroutine <em>function</em>. Calling <code>foo()</code> creates a coroutine <em>object</em>. But neither of these <b>runs</b> anything. There is no event loop yet, no thread juggling, no schedule. Coroutines are just <em>recipes on a shelf</em>. The event loop is created by <code>asyncio.run(main())</code> — that single line is the moment coroutines actually start executing. Without it, every coroutine is inert.</p>
+  </div>
+
+  <div class="box b-key">
+    <span class="lbl">The three-legged stool — miss one leg, nothing runs</span>
+    <p>All three must be present for anything to actually execute:</p>
+    <table style="margin:6px 0">
+      <tr><th>What you have</th><th>What happens</th></tr>
+      <tr><td>Only <code>async</code> (<code>async def foo():</code>)</td><td>Creates a coroutine function. Calling <code>foo()</code> returns a coroutine object. <b>Nothing runs.</b></td></tr>
+      <tr><td><code>async</code> + <code>await</code> inside the function</td><td>Same as above. <code>await</code> is just a pause marker <em>inside</em> a lifeless recipe. <b>Nothing runs.</b></td></tr>
+      <tr><td><code>async</code> + <code>await</code> + <code>asyncio.run(foo())</code></td><td>The event loop starts. The coroutine executes. <code>await</code> points actually pause and yield. <b>NOW it works.</b></td></tr>
+    </table>
+    <p style="margin-top:8px"><b>The recipe analogy:</b> <code>async def</code> writes the recipe, <code>await</code> marks the wait steps inside it, calling <code>foo()</code> hands someone the recipe paper — and <code>asyncio.run()</code> is the chef who finally reads it and cooks. Perfect recipe, no chef → nothing gets cooked.</p>
+  </div>
+
+  <p>All five pieces in one annotated example — the numbers match the table above:</p>
+
+<pre>import asyncio                          <span class="cm"># [5] asyncio — the library</span>
+
+async def task(name):                   <span class="cm"># [1] `async` — turns this into a coroutine function</span>
+    print(f"{name} start")
+    await asyncio.sleep(1)              <span class="cm"># [2] `await` — pause HERE; let other coroutines run</span>
+    print(f"{name} done")
+
+async def main():
+    <span class="cm"># Each task("A"), task("B"), task("C") call creates a coroutine OBJECT [3]</span>
+    await asyncio.gather(task("A"), task("B"), task("C"))
+
+asyncio.run(main())                     <span class="cm"># [4] THIS starts the event loop, runs main, then closes it</span>
+
+<span class="cm"># Output:</span>
+<span class="cm"># A start</span>
+<span class="cm"># B start</span>
+<span class="cm"># C start          ← all three coroutines started before any finished</span>
+<span class="cm"># A done</span>
+<span class="cm"># B done</span>
+<span class="cm"># C done</span></pre>
+
+  <div class="box b-key">
+    <span class="lbl">The mental model to take away — cooperative multitasking</span>
+    <p><b>One OS thread. One core. Many coroutines.</b> Every coroutine — whether the code creates 3 or 30,000 of them — runs on <em>the same single OS thread</em> the Python script started with (the one Python calls <code>MainThread</code>). <code>asyncio</code> never spawns a new thread per coroutine, per <code>await</code>, or per request. The event loop is one Python <code>while</code> loop; each coroutine <em>voluntarily</em> hands control back at every <code>await</code>; the loop then picks the next ready coroutine. Nothing is ever interrupted — coroutines <b>cooperate</b>.</p>
+    <p style="margin-top:10px">Contrast: <b>threads are preemptive.</b> Every <code>threading.Thread(...)</code> creates a real, separate OS thread, and the OS interrupts them whenever it wants. Coroutines: one thread total, they yield only at <code>await</code>.</p>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">The restaurant waiter analogy</span>
+    <p>One waiter, ten tables. He takes an order from table 1 (<code>await</code> — hand order to kitchen), and while the kitchen cooks he walks to table 2, takes their order, then table 3, and so on. One waiter, ten tables served concurrently. That's <code>asyncio</code>. Brilliant when most of the time is <em>waiting</em>. Useless for pure CPU work — no wait to overlap.</p>
+  </div>
+
+  <h3>Three APIs cover almost every real use case</h3>
+  <ul>
+    <li><b><code>asyncio.run(coro)</code></b> — the entry point. Creates the event loop, runs the coroutine, closes the loop.</li>
+    <li><b><code>asyncio.sleep(n)</code></b> — non-blocking sleep. Yields control for <code>n</code> seconds. Never use <code>time.sleep()</code> inside a coroutine (it freezes everything).</li>
+    <li><b><code>asyncio.gather(*coros)</code></b> — run many coroutines concurrently, wait for all, return results in the same order.</li>
+  </ul>
+
+  <p>One complete demo showing all three:</p>
+
+<pre>import asyncio, time
+
+async def task(name, delay):
+    print(f"{name} starting")
+    await asyncio.sleep(delay)          <span class="cm"># pauses THIS coroutine; others keep running</span>
+    print(f"{name} done after {delay}s")
+
+async def main():
+    t0 = time.perf_counter()
+    await asyncio.gather(               <span class="cm"># run all 3 concurrently</span>
+        task("A", 2),
+        task("B", 1),
+        task("C", 3),
+    )
+    print(f"Total: {time.perf_counter() - t0:.2f}s")
+
+asyncio.run(main())                     <span class="cm"># entry point</span>
+
+<span class="cm"># Output:</span>
+<span class="cm"># A starting          ← all three start together</span>
+<span class="cm"># B starting</span>
+<span class="cm"># C starting</span>
+<span class="cm"># B done after 1s     ← shortest finishes first</span>
+<span class="cm"># A done after 2s</span>
+<span class="cm"># C done after 3s</span>
+<span class="cm"># Total: 3.00s        ← 3 s total, not 6 s. All three waited concurrently.</span></pre>
+
+  <div class="box b-key">
+    <span class="lbl">Modern pattern (Python 3.11+): <code>asyncio.TaskGroup()</code></span>
+    <p>Same as <code>gather</code>, with automatic cancellation if any task fails. Recommended for new code:</p>
+<pre>async def main():
+    async with asyncio.TaskGroup() as tg:
+        tg.create_task(task("A", 2))
+        tg.create_task(task("B", 1))
+        tg.create_task(task("C", 3))
+    <span class="cm"># On exit: all tasks done. If any raised, all others were cancelled.</span>
+
+asyncio.run(main())</pre>
+  </div>
+
+  <h3>The question every developer asks — "does <code>async</code>/<code>await</code> create threads?"</h3>
+  <div class="box b-key">
+    <span class="lbl">Short answer: no — zero new threads, ever.</span>
+    <p><b>Not one thread per coroutine. Not one per <code>await</code>. Not one per request.</b> Every coroutine — 3, 300, or 30,000 — runs on <em>the same single OS thread</em> the Python script started with (<code>MainThread</code>). The event loop is one Python <code>while</code> loop taking turns between coroutines at each <code>await</code>. <code>asyncio</code> is an <em>alternative</em> to threads, not a wrapper around them.</p>
+    <p style="margin-top:10px"><b>Concrete counts</b> — no matter how the code scales:</p>
+    <table style="margin:6px 0">
+      <tr><th>What the code does</th><th>OS threads created</th></tr>
+      <tr><td><code>asyncio.run(main())</code> with 1 coroutine</td><td><b>0 new</b> — uses existing <code>MainThread</code></td></tr>
+      <tr><td>100 concurrent tasks via <code>gather</code></td><td><b>0 new</b> — all 100 take turns on <code>MainThread</code></td></tr>
+      <tr><td>10,000 concurrent HTTP requests via <code>TaskGroup</code></td><td><b>0 new</b> — all 10,000 take turns on <code>MainThread</code></td></tr>
+      <tr><td>Explicit <code>await asyncio.to_thread(sync_fn)</code></td><td>Uses a thread from a small pool (default: <code>min(32, cpu_count + 4)</code>)</td></tr>
+    </table>
+    <p style="margin-top:10px">Proof — three coroutines, three identical <code>MainThread</code> lines:</p>
+<pre>import asyncio, threading
+
+async def show_thread(n):
+    print(f"Task {n} thread: {threading.current_thread().name}")
+    await asyncio.sleep(0.1)
+
+async def main():
+    await asyncio.gather(show_thread(1), show_thread(2), show_thread(3))
+
+asyncio.run(main())
+<span class="cm"># Task 1 thread: MainThread</span>
+<span class="cm"># Task 2 thread: MainThread   ← same OS thread</span>
+<span class="cm"># Task 3 thread: MainThread   ← always MainThread; asyncio creates zero new threads</span></pre>
+    <p>The <em>only</em> time <code>asyncio</code> creates a thread is when the code <em>explicitly</em> asks — via <code>await asyncio.to_thread(sync_fn)</code>, the escape hatch for running blocking sync code (like a legacy DB driver or a slow C library call) without freezing the loop. Pure coroutines never touch a new thread.</p>
+  </div>
+
+  <h3>Two mistakes that catch everyone</h3>
+  <div class="box b-say">
+    <span class="lbl">1. Forgetting to <code>await</code></span>
+    <p>Calling an async function without <code>await</code> hands back a coroutine object, not the result. Python warns if the coroutine is garbage-collected without ever running.</p>
+<pre>import asyncio
+
+async def fetch():
+    return "data"
+
+<span class="cm"># ❌ WRONG — forgot await</span>
+result = fetch()
+print(result)
+<span class="cm"># → &lt;coroutine object fetch at 0x104f8b920&gt;</span>
+<span class="cm"># → RuntimeWarning: coroutine 'fetch' was never awaited</span>
+
+
+<span class="cm"># ✅ CORRECT — hand the coroutine to asyncio.run()</span>
+<span class="cm">#    (or `await` it from inside another coroutine)</span>
+result = asyncio.run(fetch())
+print(result)
+<span class="cm"># → data</span></pre>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">2. Using <code>time.sleep()</code> or <code>requests.get()</code> inside a coroutine</span>
+    <p>Blocking calls freeze the entire event loop — every other coroutine has to wait. Inside a coroutine, use the <code>asyncio</code>-friendly version of everything: <code>await asyncio.sleep(...)</code>, <code>httpx.AsyncClient</code>, an async DB driver. If a sync-only library is unavoidable, wrap it in <code>await asyncio.to_thread(sync_fn, ...)</code>.</p>
+<pre>import asyncio, time
+
+async def task(name):
+    print(f"{name} start")
+    time.sleep(2)                       <span class="cm"># ❌ freezes the ENTIRE event loop</span>
+    print(f"{name} done")
+
+async def main():
+    t0 = time.perf_counter()
+    await asyncio.gather(task("A"), task("B"), task("C"))
+    print(f"Total: {time.perf_counter() - t0:.2f}s")
+
+asyncio.run(main())
+
+<span class="cm"># Output — sequential, NOT concurrent:</span>
+<span class="cm"># A start</span>
+<span class="cm"># A done          ← B and C had to wait for A's blocking sleep</span>
+<span class="cm"># B start</span>
+<span class="cm"># B done</span>
+<span class="cm"># C start</span>
+<span class="cm"># C done</span>
+<span class="cm"># Total: 6.00s    ← 6 s (2 × 3), not 2 s</span>
+
+
+<span class="cm"># ✅ Fix — swap `time.sleep(2)` for `await asyncio.sleep(2)`:</span>
+async def task_ok(name):
+    print(f"{name} start")
+    await asyncio.sleep(2)              <span class="cm"># ✅ yields to event loop</span>
+    print(f"{name} done")
+
+<span class="cm"># Output — concurrent, all three interleave:</span>
+<span class="cm"># A start</span>
+<span class="cm"># B start</span>
+<span class="cm"># C start</span>
+<span class="cm"># A done</span>
+<span class="cm"># B done</span>
+<span class="cm"># C done</span>
+<span class="cm"># Total: 2.00s    ← 2 s total — all three waited concurrently</span></pre>
+  </div>
+
+  <div class="box b-key">
+    <span class="lbl">The rule of thumb</span>
+    <p>Use <code>asyncio</code> when the bottleneck is <b>waiting for other machines</b> — network, database, files. Huge speedups there, zero benefit for pure computation. Number-crunching is <code>multiprocessing</code>'s job (Section&nbsp;16).</p>
+  </div>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span>
+    <ul>
+      <li>Python docs — <a href="https://docs.python.org/3/library/asyncio.html" target="_blank" rel="noopener">asyncio</a>, <a href="https://docs.python.org/3/library/asyncio-task.html" target="_blank" rel="noopener">Coroutines and Tasks</a>, <a href="https://docs.python.org/3/library/asyncio-task.html#task-groups" target="_blank" rel="noopener">TaskGroup</a></li>
+      <li>PEP — <a href="https://peps.python.org/pep-0492/" target="_blank" rel="noopener">PEP 492 — Coroutines with async and await syntax</a></li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=iG6fr81xHKA" target="_blank" rel="noopener">David Beazley — "Python Concurrency From the Ground Up"</a> (PyCon 2015, still the definitive deep dive)</li>
+      <li>Article — <a href="https://realpython.com/async-io-python/" target="_blank" rel="noopener">Real Python — Async IO in Python: A Complete Walkthrough</a></li>
+    </ul>
+  </div>
+
+  <a href="#s15" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 15 answers →</span>
+    <span class="q-text">asyncio is beautiful for waiting. But for CPU work, Section 12 showed us <b>one core no matter how many threads we spawned</b>. Time to name the villain that's been hiding behind this whole story: <b>the GIL</b>.</span>
+  </a>
+</section>
+
+<!-- SECTION 15 -->
+<section class="part" id="s15">
+  <div class="p-head"><div class="p-num">15</div>
+    <h2 class="p-title">The GIL — why threading doesn't help CPU work</h2>
+    <span class="p-mins">≈ 4 min</span></div>
+
+  <p>The villain from Section 12 finally has a name.</p>
+
+  <div class="box b-say">
+    <span class="lbl">The one-line definition</span>
+    <p>The <b>GIL (Global Interpreter Lock)</b> is a single lock in the Python interpreter that only lets <b>one thread execute Python bytecode at a time</b>, no matter how many cores or threads you have.</p>
+  </div>
+
+  <h3>Why does it even exist?</h3>
+  <p>Because CPython's memory management (reference counting) isn't thread-safe. Without the GIL, two threads updating the same reference count at the same moment would corrupt memory. The GIL prevents that by serialising all Python operations.</p>
+
+  <h3>The consequence — visualised</h3>
+  <table>
+    <tr><th>Workload</th><th>What the GIL does</th><th>Result</th></tr>
+    <tr><td>Pure Python <b>CPU-bound</b> (loop crunching numbers)</td><td>Only one thread holds the GIL. Others wait.</td><td>N threads ≈ same speed as 1 thread. Sometimes slower.</td></tr>
+    <tr><td><b>I/O-bound</b> (network, disk)</td><td>Python <em>releases</em> the GIL during I/O waits.</td><td>Threads wait in parallel. Real speedup.</td></tr>
+    <tr><td><b>C extensions</b> (<code>numpy</code>, <code>pandas</code>, <code>torch</code>)</td><td>These libraries release the GIL during native computation.</td><td>Real parallelism inside the extension. This is why NumPy/PyTorch scale.</td></tr>
+  </table>
+
+  <div class="box b-key">
+    <span class="lbl">The full picture</span>
+    <p>The GIL is not always bad. If your program spends 90% of its time in NumPy or waiting on APIs, the GIL is released 90% of the time and threading works great. The GIL only <em>hurts</em> when you're doing pure Python computation in a loop. And for that, use <code>multiprocessing</code>.</p>
+  </div>
+
+  <a href="#s16" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 16 answers →</span>
+    <span class="q-text">The GIL is one lock <em>per interpreter</em>. Every thread inside the same Python process fights over it. So the workaround is obvious: <b>give each unit of work its own interpreter</b>. That's what <code>multiprocessing</code> does — and it's how you finally light up every core.</span>
+  </a>
+
+  <div class="deep">
+    <b>Go deeper</b> <span class="arrow">→</span> the full history of the GIL, why Guido couldn't remove it in 2010, and the path to no-GIL Python:
+    <ul>
+      <li>Wikipedia — <a href="https://en.wikipedia.org/wiki/Global_interpreter_lock" target="_blank" rel="noopener">Global interpreter lock</a></li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=Obt-vMVdM8s" target="_blank" rel="noopener">David Beazley: "Inside the Python GIL"</a> (PyCon 2010, still the definitive talk)</li>
+      <li>Video — <a href="https://www.youtube.com/watch?v=ph374fJqFPE" target="_blank" rel="noopener">David Beazley: "Understanding the Python GIL"</a> (PyCon 2011, follow-up)</li>
+      <li>Real Python — <a href="https://realpython.com/python-gil/" target="_blank" rel="noopener">"What Is the Python Global Interpreter Lock (GIL)?"</a></li>
+      <li>Python docs — <a href="https://docs.python.org/3/library/threading.html" target="_blank" rel="noopener">threading</a>, <a href="https://docs.python.org/3/library/multiprocessing.html" target="_blank" rel="noopener">multiprocessing</a>, <a href="https://docs.python.org/3/library/asyncio.html" target="_blank" rel="noopener">asyncio</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 16 -->
+<section class="part" id="s16">
+  <div class="p-head"><div class="p-num">16</div>
+    <h2 class="p-title"><code>multiprocessing</code> — the escape route</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>The GIL exists per-process. So the workaround is: spawn <em>more processes</em>, each with its own GIL. Now Python can truly use every core.</p>
+
+  <div class="box b-demo">
+    <span class="lbl">Try it yourself · Demo 3</span>
+<pre>python cpu-demo.py 3 14</pre>
+    <p>Activity Monitor now shows <b>all 14 cores at ~100%</b>. Total system CPU jumps to ~90%. Every core paid for is finally in use.</p>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">The pattern</span>
+<pre>from concurrent.futures import ProcessPoolExecutor
+
+def heavy_compute(n):
+    total = 0
+    for i in range(n):
+        total += i * i
+    return total
+
+if __name__ == "__main__":              # required on macOS/Windows
+    with ProcessPoolExecutor() as pool: # defaults to os.cpu_count() workers
+        results = list(pool.map(heavy_compute, [10_000_000] * 14))
+    print(results)</pre>
+  </div>
+
+  <p>Each process has its own Python interpreter, its own memory, its own GIL. They don't fight for the lock — they don't share it. Downside: processes are heavier to spawn than threads, and sharing data between them is more work (you use <code>Queue</code>, <code>Pipe</code>, or <code>Manager</code>).</p>
+
+  <div class="box b-key">
+    <span class="lbl">The rule of thumb</span>
+    <p><b>Threads for waiting. Processes for computing.</b> That's the whole story on one line.</p>
+  </div>
+
+  <a href="#s17" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 17 answers →</span>
+    <span class="q-text">Processes work, but they're heavy — each spawns its own Python interpreter and its own memory. <b>Wouldn't it be nice if Python threads could just work in parallel?</b> Huge news from late 2024: after 25 years, they finally can. Read this before your next interview.</span>
+  </a>
+</section>
+
+<!-- SECTION 17 -->
+<section class="part" id="s17">
+  <div class="p-head"><div class="p-num">17</div>
+    <h2 class="p-title">Python 3.14 — the GIL is (optionally) gone</h2>
+    <span class="p-mins">≈ 2 min</span></div>
+
+  <p>Big news that only landed in October 2024 with Python 3.13 and became officially supported in 3.14: after <b>25 years</b>, CPython finally has a <b>GIL-optional</b> build.</p>
+
+  <table>
+    <tr><th>Build</th><th>GIL</th><th>Command</th></tr>
+    <tr><td>Standard Python 3.14</td><td><b>GIL still on</b> (backward compatible)</td><td><code>python3.14</code></td></tr>
+    <tr><td>Free-threaded Python 3.14</td><td><b>GIL disabled</b></td><td><code>python3.14t</code> (note the <b>t</b>)</td></tr>
+  </table>
+
+  <div class="box b-key">
+    <span class="lbl">A common misconception — watch out</span>
+    <p>When you install Python 3.14 from python.org, you get the <b>standard build with the GIL still on</b>. The free-threaded build is a <em>separate installer option</em> — you have to explicitly pick it. And it's still labelled “experimental” — some C extensions don't yet work with it, so you can't just switch all your projects overnight.</p>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">For an interview</span>
+    <p>Yes, Python 3.14 has a no-GIL build. It's opt-in via the <code>python3.14t</code> executable (PEP 703 / PEP 779). Standard installs still ship with the GIL for compatibility. Threads finally run in true parallel in the free-threaded build — but many C extensions haven't been recompiled for it yet.</p>
+  </div>
+
+  <a href="#s18" class="q-next" style="text-decoration:none">
+    <span class="q-tag">Section 18 answers →</span>
+    <span class="q-text">We've traced the whole story — silicon → CPython → GIL → escape routes. <b>Now the payoff.</b> The same <code>cpu-demo.py</code> you ran in Section 0, re-run with the right tool. Watch every core finally light up — and see the three opening questions get answered on one screen.</span>
+  </a>
+
+  <div class="deep">
+    <b>Depth</b> <span class="arrow">→</span>
+    <ul>
+      <li>External: <a href="https://peps.python.org/pep-0703/" target="_blank" rel="noopener">PEP 703 — Making the GIL Optional</a>, <a href="https://peps.python.org/pep-0779/" target="_blank" rel="noopener">PEP 779 — Criteria for Supported Status</a></li>
+      <li><a href="https://docs.python.org/3.14/howto/free-threading-python.html" target="_blank" rel="noopener">Official docs — Free-threaded Python HOWTO</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════
+     PAYOFF
+     ═════════════════════════════════════════════════════════ -->
+
+<!-- SECTION 18 -->
+<section class="part" id="s18">
+  <div class="p-head"><div class="p-num">18</div>
+    <h2 class="p-title">The answer — mystery solved on Activity Monitor</h2>
+    <span class="p-mins">≈ 3 min</span></div>
+
+  <p>All three experiments, back-to-back, tell the whole story on one Activity Monitor screen:</p>
+
+  <div class="box b-demo">
+    <span class="lbl">The three experiments — side by side</span>
+    <ol>
+      <li><code>python cpu-demo.py 1</code> → one core at 100%. Baseline.</li>
+      <li><code>python cpu-demo.py 2 14</code> → still one core. <em>Threads didn't help.</em> Because of the GIL.</li>
+      <li><code>python cpu-demo.py 3 14</code> → <b>all 14 cores at 100%</b>. Because separate processes = separate GILs.</li>
+    </ol>
+  </div>
+
+  <div class="box b-say">
+    <span class="lbl">The takeaway</span>
+    <p>That's the whole story. A chip is made from rock, refined through TSMC's factory. Each core is a physical worker. Python threads share one core because of a lock called the GIL. To use all your cores, you either offload the wait (<code>asyncio</code>, for I/O) or spawn separate processes (<code>multiprocessing</code>, for CPU work). You now understand your machine <em>and</em> your language. You're a one-percent developer.</p>
+  </div>
+
+  <h3>The three questions from Section 0 — now answered</h3>
+  <ol class="q-list">
+    <li><b>Why only one core?</b> Because of the <b>GIL</b> — a single lock inside CPython that lets only one Python thread execute bytecode at a time. Every Python thread you spawn ends up taking turns on one core (Section&nbsp;15).</li>
+    <li><b>What is a "core", what is a "thread"?</b> A <b>core</b> is a physical worker etched into silicon (Section&nbsp;10). A <b>thread</b> is used at two layers: hardware threads (execution slots on a core — 1 per core on Apple, 2 per P-core on Intel/AMD via SMT) and OS threads (units the operating system can schedule, thousands of them) (Section&nbsp;11).</li>
+    <li><b>How do we unlock the rest?</b>
+      <ul>
+        <li>If the code is <em>waiting</em> (network, DB, files) → use <b><code>asyncio</code></b> (Section&nbsp;14) or <code>threading</code>.</li>
+        <li>If the code is <em>computing</em> in pure Python → use <b><code>multiprocessing</code></b> (Section&nbsp;16) — separate processes, separate GILs, real parallelism.</li>
+        <li>Or, from late 2024, <b><code>python3.14t</code></b> — the free-threaded build with no GIL at all (Section&nbsp;17).</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3>The single decision tree to remember</h3>
+<pre>Is your program slow?
+├── Waiting on network/disk/DB?  → asyncio (or threading if the library is blocking)
+├── Crunching numbers in Python? → multiprocessing (or Python 3.14t free-threaded)
+└── Crunching in NumPy/Torch/C?  → threading works fine — the C code releases the GIL</pre>
+
+  <div class="deep">
+    <b>Homework</b> <span class="arrow">→</span> Take your slowest Python function. Time it. Guess whether it's CPU-bound or I/O-bound. Pick the right tool from the tree above. Time it again. That's the entire skill.
+  </div>
+</section>
+
+<footer>
+  Part 54 · Concurrency in Python — the complete flow. Every link opens in a new tab so you don't lose your place.
+</footer>
+
+</main>
+
+<script>
+  const html = document.documentElement;
+  const side = document.getElementById('side');
+  const sideBtn = document.getElementById('sideToggle');
+  const themeBtn = document.getElementById('themeToggle');
+  const SIDE_KEY = 'lesson-flow-sidebar-hidden';
+  const THEME_KEY = 'lesson-flow-theme';
+
+  /* ── Theme (dark default; respects saved pref, then system pref) ── */
+  function applyTheme(t) {
+    html.dataset.theme = t;
+    themeBtn.setAttribute('aria-label',
+      t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    themeBtn.setAttribute('title',
+      t === 'dark' ? 'Switch to light mode (T)' : 'Switch to dark mode (T)');
+  }
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  if (savedTheme === 'light' || savedTheme === 'dark') applyTheme(savedTheme);
+  else if (window.matchMedia('(prefers-color-scheme: light)').matches) applyTheme('light');
+  else applyTheme('dark');
+  themeBtn.addEventListener('click', () => {
+    const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    localStorage.setItem(THEME_KEY, next);
+  });
+
+  /* ── Sidebar toggle ── */
+  if (localStorage.getItem(SIDE_KEY) === '1') side.classList.add('hidden');
+  function toggleSidebar() {
+    side.classList.toggle('hidden');
+    localStorage.setItem(SIDE_KEY, side.classList.contains('hidden') ? '1' : '0');
+  }
+  sideBtn.addEventListener('click', toggleSidebar);
+
+  /* ── Keyboard shortcuts: S = sidebar, T = theme ── */
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input,textarea')) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 's' || e.key === 'S') toggleSidebar();
+    if (e.key === 't' || e.key === 'T') themeBtn.click();
+  });
+
+  /* ── Auto-collapse on mobile after nav tap ── */
+  document.querySelectorAll('nav.side a[href^="#"]').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 900) {
+        side.classList.add('hidden');
+        localStorage.setItem(SIDE_KEY, '1');
+      }
+    });
+  });
+
+  /* ── Scroll-spy: highlight active section in sidebar ── */
+  const navLinks = new Map();
+  document.querySelectorAll('nav.side a[href^="#s"]').forEach(a => {
+    navLinks.set(a.getAttribute('href').slice(1), a);
+  });
+  const sections = document.querySelectorAll('section.part[id]');
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const link = navLinks.get(entry.target.id);
+      if (!link) return;
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      /* Keep active link in view within the sidebar */
+      const linkRect = link.getBoundingClientRect();
+      const sideRect = side.getBoundingClientRect();
+      if (linkRect.top < sideRect.top || linkRect.bottom > sideRect.bottom) {
+        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => spy.observe(s));
+
+  /* ── Copy button on every <pre> block ── */
+  document.querySelectorAll('pre').forEach(pre => {
+    const codeText = pre.textContent;   /* capture BEFORE injecting the button */
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy code snippet');
+    pre.appendChild(btn);
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(codeText);
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+      } catch {
+        btn.textContent = 'Error';
+      }
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  });
+</script>
+</body>
+</html>
