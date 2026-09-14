@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part 55 — Big-O Thinking (Time &amp; Space Complexity) | One Percent Dev</title>
+<style>
+  :root{
+    --bg:#f6f5f1; --paper:#ffffff; --ink:#1c1c22; --muted:#5c5c6a;
+    --line:#e6e4dc; --blue:#2f6bff; --blue-soft:#e8efff;
+    --purple:#7b3ff2; --purple-soft:#f0e9ff;
+    --amber:#f59e0b; --amber-soft:#fff3d6;
+    --green:#16a34a; --green-soft:#e4f6e9;
+    --red:#e11d48; --red-soft:#ffe4ea;
+    --slate:#334155; --slate-soft:#eef2f7;
+    --radius:16px; --shadow:0 6px 24px rgba(20,20,40,.08);
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --sidebar-w:260px;
+    --read-w:760px;
+    --content-w:1180px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  /* Responsive base font: 15px on phones → 17px on wide desktops, smooth in between */
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;font-size:clamp(15px, 0.4vw + 14px, 17px);-webkit-font-smoothing:antialiased}
+
+  /* progress bar */
+  .progress{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple),var(--red));z-index:100;transition:width .1s}
+
+  /* layout (grid so sidebar can smoothly collapse to 0) */
+  .layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh;transition:grid-template-columns .28s ease}
+  body.sidebar-collapsed .layout{grid-template-columns:0 1fr}
+
+  aside.sidebar{background:#0f1226;color:#d7dbf0;padding:22px 18px;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;transition:transform .28s ease,padding .28s ease}
+  body.sidebar-collapsed aside.sidebar{transform:translateX(-100%);padding:0}
+  aside.sidebar h2{color:#fff;font-size:14px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 14px 42px;font-weight:800;white-space:nowrap}
+  aside .act{margin:16px 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8fa0d8;font-weight:800}
+  aside a.nav{display:block;padding:6px 10px;margin:2px 0;border-radius:8px;color:#c7d0ee;text-decoration:none;font-size:13px;transition:background .12s,color .12s;line-height:1.35}
+  aside a.nav:hover{background:rgba(255,255,255,.06);color:#fff}
+  aside a.nav.active{background:linear-gradient(90deg,rgba(47,107,255,.28),transparent);color:#fff;border-left:3px solid var(--blue);padding-left:10px}
+  aside a.nav .n{display:inline-block;width:26px;color:#8fa0d8;font-variant-numeric:tabular-nums}
+  main{min-width:0;padding:0}
+
+  /* sidebar toggle button */
+  .sidebar-toggle{position:fixed;top:12px;left:12px;z-index:200;width:36px;height:36px;border-radius:8px;background:#0f1226;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.28);transition:background .15s,transform .15s}
+  .sidebar-toggle:hover{background:#1c2145;transform:translateY(-1px)}
+  .sidebar-toggle svg{width:20px;height:20px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  body.sidebar-collapsed .sidebar-toggle{background:var(--blue)}
+  body.sidebar-collapsed .sidebar-toggle:hover{background:#4a80ff}
+  @media(max-width:900px){
+    body:not(.sidebar-collapsed) aside.sidebar{position:fixed;top:0;left:0;width:min(88vw,320px);z-index:150;box-shadow:0 0 40px rgba(0,0,0,.4)}
+    body:not(.sidebar-collapsed)::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:140}
+    .layout{grid-template-columns:1fr}
+  }
+
+  /* hero */
+  header.hero{background:linear-gradient(160deg,#0b2a1a,#0f1226 55%,#3a2a6b);color:#fff;padding:74px 56px 62px}
+  header.hero > *{max-width:var(--content-w);margin-left:auto;margin-right:auto}
+  header.hero .kicker{display:block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b9c2ff;border:1px solid rgba(255,255,255,.25);padding:6px 14px;border-radius:999px;margin-bottom:18px;width:fit-content;max-width:100%}
+  header.hero h1{font-size:clamp(28px, 3.5vw + 12px, 46px);line-height:1.1;margin:0 auto 14px;font-weight:800;letter-spacing:-.02em}
+  header.hero p.lede{font-size:clamp(15px, 0.8vw + 12px, 20px);color:#d7dbf0;margin:0 auto}
+  header.hero .toc{margin-top:34px;display:flex;flex-wrap:wrap;gap:8px}
+  header.hero .toc a{color:#d7dbf0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;text-decoration:none}
+  header.hero .toc a:hover{background:rgba(255,255,255,.14);color:#fff}
+  /* keep inline <code> chips on the dark hero readable — no beige boxes */
+  header.hero code{background:rgba(255,255,255,.10);color:#e7e9ff;border:1px solid rgba(255,255,255,.16);font-size:.85em;padding:1px 7px;border-radius:6px}
+
+  /* content wrap */
+  .wrap{max-width:var(--content-w);padding:0 56px;margin:0 auto}
+
+  /* scene */
+  section.scene{padding:56px 56px;border-bottom:1px solid var(--line);scroll-margin-top:20px;max-width:calc(var(--content-w) + 112px);margin-left:auto;margin-right:auto}
+  section.scene:nth-child(even){background:linear-gradient(180deg,var(--paper),#faf9f5)}
+  .scene-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .badge{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#0f1226;color:#fff;font-weight:800;font-size:18px;flex-shrink:0}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  h2.scene-title{font-size:clamp(22px, 2vw + 14px, 32px);margin:4px 0 4px;line-height:1.2;letter-spacing:-.015em;max-width:900px}
+  h3{font-size:clamp(16px, 0.6vw + 14px, 20px);margin:24px 0 8px;line-height:1.3;max-width:var(--content-w)}
+  h4{font-size:clamp(13px, 0.3vw + 12px, 15px);margin:16px 0 6px;color:var(--slate)}
+  p{margin:12px 0;max-width:var(--read-w)}
+  ul,ol{max-width:var(--read-w)}
+  code{font-family:var(--mono);font-size:.9em;background:#f0efe9;padding:2px 6px;border-radius:6px}
+  a{color:var(--blue)}
+  @media(max-width:640px){
+    header.hero{padding:52px 20px 42px}
+    section.scene{padding:36px 20px}
+    aside.sidebar h2{margin-left:44px;font-size:12px}
+    aside a.nav{padding:5px 8px;font-size:12.5px}
+    .badge{width:40px;height:40px;font-size:16px;border-radius:12px}
+    /* let long tables scroll horizontally instead of shrinking to unreadable */
+    section.scene table{display:block;overflow-x:auto;white-space:nowrap;max-width:100%}
+    section.scene table td,section.scene table th{white-space:normal}
+  }
+  /* tablet touch-up */
+  @media(min-width:641px) and (max-width:900px){
+    header.hero{padding:64px 40px 52px}
+    section.scene{padding:48px 40px}
+  }
+
+  /* talk track */
+  .talk{background:#fff8e6;border-left:4px solid var(--amber);border-radius:8px;padding:14px 18px;margin:22px 0;max-width:var(--content-w)}
+  .talk .lbl{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a5b00;font-weight:800;margin-bottom:6px}
+  .talk p{margin:6px 0;font-style:italic;font-size:15px;color:#3f3013;max-width:none}
+
+  /* callout */
+  .callout{border-radius:12px;padding:16px 18px;margin:18px 0;border:1px solid;max-width:var(--content-w)}
+  .callout .lbl{display:block;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+  .c-key{background:var(--blue-soft);border-color:#bcd0ff}.c-key .lbl{color:#1b47b3}
+  .c-warn{background:var(--red-soft);border-color:#f5b6c4}.c-warn .lbl{color:#a1102f}
+  .c-note{background:var(--slate-soft);border-color:#d5deea}.c-note .lbl{color:var(--slate)}
+  .c-good{background:var(--green-soft);border-color:#b4dfc2}.c-good .lbl{color:#0d7a37}
+
+  /* tables — responsive font, horizontal scroll on tiny screens */
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:clamp(12.5px, 0.3vw + 12px, 14.5px);max-width:var(--content-w)}
+  .table-wrap{overflow-x:auto;margin:16px 0;-webkit-overflow-scrolling:touch}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#f3f2ec;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+  tr:nth-child(even) td{background:#faf9f5}
+  td code{font-size:.88em}
+
+  /* code blocks — slightly smaller than body, fluid down on phones */
+  pre{position:relative;background:#0f1226;color:#e7e9ff;border-radius:12px;padding:16px 18px;overflow:auto;font-family:var(--mono);font-size:clamp(12px, 0.3vw + 11px, 14px);line-height:1.55;margin:16px 0;max-width:var(--content-w)}
+  pre .cm{color:#8ea0c9}
+  pre .kw{color:#c792ea}
+  pre .fn{color:#82aaff}
+  pre .st{color:#c3e88d}
+  pre .nu{color:#f78c6c}
+  pre .bad{color:#ff8b9c}
+  pre .good{color:#a5f4a1}
+
+  /* copy button — dynamically added to every <pre> by JS at the top-right corner */
+  .copy-btn{position:absolute;top:8px;right:8px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);color:#c9cce6;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:4px 9px;font-family:Inter,-apple-system,sans-serif;font-size:11px;font-weight:600;letter-spacing:.02em;cursor:pointer;opacity:.55;transition:opacity .15s,background .15s,color .15s,border-color .15s;z-index:2;user-select:none}
+  .copy-btn:hover{opacity:1;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+  .copy-btn:active{transform:translateY(1px)}
+  .copy-btn.copied{opacity:1;background:#16a34a;color:#fff;border-color:#16a34a}
+  .copy-btn.failed{opacity:1;background:#dc2626;color:#fff;border-color:#dc2626}
+  pre:hover .copy-btn{opacity:1}
+  @media (max-width:640px){ .copy-btn{opacity:1} }   /* always visible on touch */
+
+  /* pull quote */
+  .quote{border-left:4px solid var(--purple);background:var(--purple-soft);border-radius:8px;padding:16px 20px;margin:22px 0;max-width:var(--content-w);font-size:16px;font-style:italic;color:#3a1e6b;line-height:1.55}
+  .quote .who{display:block;margin-top:10px;font-size:12px;font-style:normal;font-weight:700;color:#5a2ab8;letter-spacing:.02em}
+
+  /* diagrams — boxes */
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:stretch;margin:18px 0;max-width:var(--content-w)}
+  .box{border-radius:10px;padding:12px 14px;text-align:center;font-weight:700;border:2px solid;min-width:100px;background:#fff;font-size:14px;flex:1}
+  .b-good{border-color:var(--green);color:#0d7a37;background:var(--green-soft)}
+  .b-ok{border-color:var(--blue);color:#1b47b3;background:var(--blue-soft)}
+  .b-warn{border-color:var(--amber);color:#8a5b00;background:var(--amber-soft)}
+  .b-bad{border-color:var(--red);color:var(--red);background:var(--red-soft)}
+  .b-plain{border-color:var(--line);color:var(--ink)}
+  .sub{font-weight:500;font-size:12px;color:var(--muted);display:block;margin-top:2px}
+  .arrow{display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted);padding:0 4px}
+
+  /* timeline visualization */
+  .tl-grid{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;align-items:center;margin:14px 0;max-width:var(--content-w)}
+  .tl-label{font-weight:700;font-size:13px;color:var(--slate)}
+  .tl-track{height:34px;background:#f3f2ec;border-radius:8px;position:relative;overflow:hidden;border:1px solid var(--line)}
+  .tl-bar{position:absolute;top:4px;height:26px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;white-space:nowrap;padding:0 6px}
+  .bar-a{background:var(--green)}
+  .bar-b{background:var(--blue)}
+  .bar-c{background:var(--amber)}
+  .bar-d{background:var(--red)}
+  .tl-cap{font-size:13px;color:var(--muted);margin:4px 0 12px}
+
+  /* Big-O growth chart — a hand-built visual */
+  .growth{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px;margin:22px 0;max-width:var(--content-w);box-shadow:var(--shadow)}
+  .growth h4{margin:0 0 12px;font-size:14px;color:var(--slate);letter-spacing:.02em;text-transform:uppercase;font-weight:800}
+  .growth-svg{width:100%;height:auto;display:block}
+  .growth-legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:12px;font-size:13px;font-weight:600}
+  .growth-legend .lg{display:flex;align-items:center;gap:6px}
+  .growth-legend .sw{width:14px;height:4px;border-radius:2px}
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;max-width:var(--content-w)}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600}
+  .chip.blue{background:var(--blue-soft);border-color:#bcd0ff;color:#1b47b3}
+  .chip.green{background:var(--green-soft);border-color:#b4dfc2;color:#0d7a37}
+  .chip.amber{background:var(--amber-soft);border-color:#f0d090;color:#8a5b00}
+  .chip.red{background:var(--red-soft);border-color:#f5b6c4;color:#a1102f}
+  .chip.purple{background:var(--purple-soft);border-color:#d5c0f5;color:#5a2ab8}
+
+  /* memory / bar ladder */
+  .ladder{margin:16px 0;max-width:var(--content-w)}
+  .rung{display:flex;align-items:center;gap:12px;margin:6px 0}
+  .rung .name{width:130px;font-weight:800;font-size:13px}
+  .rung .bar{height:32px;border-radius:8px;display:flex;align-items:center;padding-left:12px;color:#fff;font-weight:700;font-size:12px;white-space:nowrap}
+  .rung .note{font-size:12px;color:var(--muted)}
+
+  /* hierarchy tree */
+  .tree{background:#0f1226;color:#e7e9ff;font-family:var(--mono);font-size:13px;line-height:1.7;padding:20px 22px;border-radius:12px;overflow-x:auto;margin:20px 0;max-width:var(--content-w);white-space:pre;tab-size:2}
+
+  /* stats */
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0;max-width:var(--content-w)}
+  @media(max-width:640px){.stat-grid{grid-template-columns:1fr}}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .stat .n{font-size:26px;font-weight:800;color:var(--blue);line-height:1;font-variant-numeric:tabular-nums}
+  .stat .n.red{color:var(--red)}
+  .stat .n.green{color:var(--green)}
+  .stat .n.amber{color:#b45309}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:.02em}
+
+  /* side-by-side compare */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0;max-width:var(--content-w)}
+  @media(max-width:720px){.compare{grid-template-columns:1fr}}
+  .compare .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .compare .card.bad{border-color:#f5b6c4;background:linear-gradient(180deg,#fff,#fff5f7)}
+  .compare .card.good{border-color:#b4dfc2;background:linear-gradient(180deg,#fff,#f2fbf5)}
+  .compare .card .tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:6px;margin-bottom:8px}
+  .compare .card.bad .tag{background:var(--red-soft);color:#a1102f}
+  .compare .card.good .tag{background:var(--green-soft);color:#0d7a37}
+  .compare .card pre{margin:8px 0 0;max-width:none}
+
+  /* year / tag */
+  .year{display:inline-block;background:#0f1226;color:#fff;font-weight:800;padding:2px 10px;border-radius:6px;font-family:var(--mono);font-size:14px;margin-right:8px}
+
+  /* footer */
+  footer{padding:44px 44px 70px;color:var(--muted);font-size:13px;text-align:center;border-top:1px solid var(--line)}
+  footer .src{max-width:800px;margin:12px auto 0;text-align:left;font-size:12px;line-height:1.5;color:#7a7a86}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation sidebar" title="Toggle sidebar (S)">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+</button>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <h2>Part 55 · 28 sections</h2>
+    <div class="act">Chapter 1 — Vocabulary you need first</div>
+    <a class="nav" href="#s1"><span class="n">1.</span> What "complexity" actually means</a>
+    <a class="nav" href="#s2"><span class="n">2.</span> Time complexity is not speed</a>
+    <a class="nav" href="#s3"><span class="n">3.</span> Space complexity — the memory half</a>
+    <a class="nav" href="#s4"><span class="n">4.</span> The alphabet — n, log n, n², 2ⁿ, n!</a>
+    <a class="nav" href="#s5"><span class="n">5.</span> Why the notation is called "Big-O"</a>
+    <div class="act">Chapter 2 — First applied test</div>
+    <a class="nav" href="#s6"><span class="n">6.</span> Two functions, one answer, huge time gap</a>
+    <div class="act">Chapter 3 — The rules &amp; the seven curves</div>
+    <a class="nav" href="#s7"><span class="n">7.</span> The rules — drop constants, keep dominant</a>
+    <a class="nav" href="#s8"><span class="n">8.</span> The 7 curves at a glance</a>
+    <div class="act">Chapter 4 — The four you use daily</div>
+    <a class="nav" href="#s9"><span class="n">9.</span> O(1) — constant time</a>
+    <a class="nav" href="#s10"><span class="n">10.</span> O(log n) — logarithmic</a>
+    <a class="nav" href="#s11"><span class="n">11.</span> O(n) — linear</a>
+    <a class="nav" href="#s12"><span class="n">12.</span> O(n log n) — sorting</a>
+    <a class="nav" href="#s13"><span class="n">13.</span> O(n²) — the danger zone</a>
+    <div class="act">Chapter 5 — Space complexity</div>
+    <a class="nav" href="#s14"><span class="n">14.</span> What space complexity is</a>
+    <a class="nav" href="#s15"><span class="n">15.</span> O(1) / O(n) / O(n²) space</a>
+    <a class="nav" href="#s16"><span class="n">16.</span> Time ↔ space tradeoff</a>
+    <div class="act">Chapter 6 — Five traps</div>
+    <a class="nav" href="#s17"><span class="n">17.</span> Trap 1 — <code>in</code> on list vs set</a>
+    <a class="nav" href="#s18"><span class="n">18.</span> Trap 2 — Nested loops</a>
+    <a class="nav" href="#s19"><span class="n">19.</span> Trap 3 — String concat in a loop</a>
+    <a class="nav" href="#s20"><span class="n">20.</span> Trap 4 — sorted() when you need min</a>
+    <a class="nav" href="#s21"><span class="n">21.</span> Trap 5 — Hidden O(n²) in one-liners</a>
+    <div class="act">Chapter 7 — Data structures cheat sheet</div>
+    <a class="nav" href="#s22"><span class="n">22.</span> list / dict / set / tuple / deque / heap</a>
+    <a class="nav" href="#s23"><span class="n">23.</span> Right structure kills the algorithm</a>
+    <div class="act">Chapter 8 — Interview patterns</div>
+    <a class="nav" href="#s24"><span class="n">24.</span> Two-sum (O(n²) → O(n))</a>
+    <a class="nav" href="#s25"><span class="n">25.</span> Duplicates &amp; word frequency</a>
+    <div class="act">Chapter 9 — Analyse your own code</div>
+    <a class="nav" href="#s26"><span class="n">26.</span> Counting loops &amp; hidden work</a>
+    <a class="nav" href="#s27"><span class="n">27.</span> The senior-answer template</a>
+    <div class="act">Chapter 10 — The payoff</div>
+    <a class="nav" href="#s28"><span class="n">28.</span> The answer — closing the loop</a>
+  </aside>
+
+  <main>
+
+    <header class="hero">
+      <span class="kicker">Part 55 · Time &amp; Space Complexity</span>
+      <h1>Two developers solve the same problem. One finishes in 0.01 seconds. The other in 45 minutes. Both are correct.</h1>
+      <p class="lede">A 28-section walkthrough that assumes zero background. <b>Chapter 1</b> settles the vocabulary first — what "complexity" actually is, why we say "time" when we don't mean seconds, what "space" adds on top, what <code>n</code> and <code>log n</code> stand for, and why the notation is called "Big-O". <b>Chapter 2</b> is the first applied test — two Python functions, same input, same correct answer, roughly 100,000× time difference. From there, Chapters 3 through 10 build the full toolkit: the rules, the seven growth curves, the four patterns you meet daily, space complexity in depth, the five traps that hide in innocent code, the data-structure cheat sheet, the interview patterns, and a repeatable method for analysing any function you're given. By the end you can look at any Python function and tell — before running it — whether it will survive real data.</p>
+
+      <div class="toc">
+        <a href="#s1">What "complexity" means</a>
+        <a href="#s2">Time is not speed</a>
+        <a href="#s3">Space complexity</a>
+        <a href="#s4">n, log n, n², n! decoded</a>
+        <a href="#s5">Why "Big-O"?</a>
+        <a href="#s6">The two-function test</a>
+        <a href="#s8">The seven curves</a>
+        <a href="#s17">The five traps</a>
+        <a href="#s22">Data structure cheat sheet</a>
+        <a href="#s24">Interview patterns</a>
+        <a href="#s28">The answer — closing the loop</a>
+      </div>
+    </header>
+
+
+    <!-- =========================================================== -->
+    <!-- === CHAPTER 1 · VOCABULARY YOU NEED FIRST =============== -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s1">
+      <div class="scene-head"><div class="badge">1</div><div><div class="eyebrow">Chapter 1 · Vocabulary you need first</div><h2 class="scene-title">What does the word "complexity" actually mean?</h2></div></div>
+
+      <p>The word "complexity" sounds advanced. It isn't. In computer science it has one very small meaning:</p>
+
+      <div class="callout c-key">
+        <span class="lbl">The one-sentence definition</span>
+        <b>Complexity = how much extra work (steps) and extra memory (bytes) your code needs when the input gets bigger.</b>
+        Not "how complicated the code looks." Just: <em>when I feed the code 10× more data, does it need 10× more work, 100× more, or does it stay flat?</em>
+      </div>
+
+      <h3>Two flavours — that's the whole vocabulary</h3>
+
+      <div class="row">
+        <div class="box b-ok" style="min-width:200px">
+          <b>Time complexity</b>
+          <span class="sub">how the <b>number of steps</b> grows with input</span>
+        </div>
+        <div class="box b-warn" style="min-width:200px">
+          <b>Space complexity</b>
+          <span class="sub">how the <b>amount of memory</b> grows with input</span>
+        </div>
+      </div>
+
+      <p>Same notation, same rules, same intuition for both. Learn one, you learn the other.</p>
+
+      <div class="callout c-note">
+        <span class="lbl">Where does the word "complexity" come from?</span>
+        In everyday English "complex" means <em>complicated</em>. In computer science the word came from Latin <em>complexus</em> — "woven together". Mathematicians needed a term for how one quantity (steps, memory) is <em>woven together with</em> another (input size) — how one grows when the other grows. They picked "complexity". So when you hear the word in this chapter, think <b>growth relationship</b>, not "how complicated the code looks".
+      </div>
+
+      <div class="callout c-note">
+        <span class="lbl">And why the word "time"? Why not "operations complexity"?</span>
+        Good question — because we're <b>not</b> measuring seconds. <b>"Space"</b> is easy: it literally means memory (bytes of RAM). <b>"Time"</b> is the misleading one — the label survived from the 1960s when researchers actually timed algorithms on one specific machine. The moment a faster CPU appeared that number was useless, so the field switched to counting <b>operations (steps)</b> instead — because every step takes some tiny amount of time on any CPU, and more steps <em>always</em> means more elapsed time. The name stuck, the measurement got machine-independent. So mentally read <b>"time complexity"</b> as <b>"how the number of steps my code performs grows with the input"</b>. That's what it answers in one line: <em>is my algorithm capable of handling the input as it grows, or does it collapse under real data?</em>
+      </div>
+
+      <div class="callout c-note">
+        <span class="lbl">Key: complexity is a property of the CODE — not the machine</span>
+        Your friend's M5 MacBook runs the same script 10× faster than your 2015 laptop. Same code → different seconds. So we <b>can't</b> describe code by "seconds" — that number depends on the machine. What we CAN describe is <b>the growth pattern</b>: if 10× data means 100× time on your laptop, it also means 100× time on every other machine. That growth pattern is the complexity.
+      </div>
+    </section>
+
+    <section class="scene" id="s2">
+      <div class="scene-head"><div class="badge">2</div><div><div class="eyebrow">Chapter 1 · Vocabulary you need first</div><h2 class="scene-title">Time complexity is <em>not</em> speed — the mind-shift that changes everything</h2></div></div>
+
+      <p>The biggest wrong idea in this whole topic. Fix this one and everything else clicks.</p>
+
+      <div class="callout c-warn">
+        <span class="lbl">The myth to unlearn</span>
+        <b>Wrong:</b> "Time complexity = how fast my code runs."<br>
+        <b>Right:</b> "Time complexity = how <em>the number of steps</em> my code takes GROWS as input grows."<br>
+        Speed is measured in seconds (a machine property). Complexity is measured in <em>growth</em> (a code property).
+      </div>
+
+      <h3>The thought experiment — three machines, one function</h3>
+
+      <p>Run the same function on three machines. Then feed it 10× more data:</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Machine</th><th>Time for 1,000 items</th><th>Time for 10,000 items</th><th>Ratio</th></tr></thead>
+        <tbody>
+          <tr><td>Your 2015 MacBook</td><td>5 s</td><td>500 s</td><td><b>100×</b></td></tr>
+          <tr><td>Friend's 2026 M5 Mac</td><td>0.5 s</td><td>50 s</td><td><b>100×</b></td></tr>
+          <tr><td>An AWS server</td><td>2 s</td><td>200 s</td><td><b>100×</b></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout c-good">
+        <span class="lbl">Look at that last column</span>
+        Absolute seconds are all different — that's speed, and it depends on the machine. But <b>the ratio is identical on every machine</b>: 10× input → 100× time. <b>That ratio IS the complexity.</b> Big-O gives us the shorthand: this pattern is called <b>O(n²)</b>.<br><br>
+        <b>Mind-shift:</b> stop asking "how fast is this code?" Start asking "how does this code GROW?" (Remember from S1 — "time" here means growth in the number of steps, not seconds.)
+      </div>
+    </section>
+
+    <section class="scene" id="s3">
+      <div class="scene-head"><div class="badge">3</div><div><div class="eyebrow">Chapter 1 · Vocabulary you need first</div><h2 class="scene-title">Space complexity — same mind-shift, for memory</h2></div></div>
+
+      <p>Same idea as time complexity — swap "steps" for "bytes of memory". If 10× input needs 10× RAM, that pattern is <b>O(n) space</b>. If it needs 100× RAM, that's <b>O(n²) space</b>. Growth pattern, not absolute bytes.</p>
+
+      <div class="callout c-warn">
+        <span class="lbl">Memory is the harder wall — it doesn't slow down, it CRASHES</span>
+        Your laptop has ~16 GB of RAM. A cloud VM might have 64 GB. Neither has a terabyte. If your algorithm has <b>O(n²) space</b> and someone hands you n = 100,000 → that's 10¹⁰ cells × 8 bytes = <b>80 GB of RAM needed</b>. Your code doesn't run slowly. It dies instantly with <code>MemoryError</code>. That's why space complexity isn't optional.
+      </div>
+
+      <div class="row">
+        <div class="box b-good"><b>O(1) space</b><span class="sub">a few variables — never grows</span></div>
+        <div class="box b-ok"><b>O(log n) space</b><span class="sub">recursion depth — grows very slowly</span></div>
+        <div class="box b-warn"><b>O(n) space</b><span class="sub">a copy of the input — usually fine</span></div>
+        <div class="box b-bad"><b>O(n²) space</b><span class="sub">a full matrix — crashes on real data</span></div>
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">Answer as a PAIR — always</span>
+        When asked "what's the complexity?", the strong answer is <b>"O(?) time AND O(?) space"</b>. Both halves. They're independent — code can be O(n) time / O(1) space (scan with counters), or O(n²) time / O(1) space (nested loops with no extra storage), or O(n) time / O(n) space (building a set). Naming both = senior-level answer.
+      </div>
+    </section>
+
+    <section class="scene" id="s4">
+      <div class="scene-head"><div class="badge">4</div><div><div class="eyebrow">Chapter 1 · Vocabulary you need first</div><h2 class="scene-title">The alphabet decoded — n, log n, n², 2ⁿ, n! in plain English</h2></div></div>
+
+      <p>These scary symbols are just shorthand for concrete counting ideas. Translate them once and they stop being math — they become <em>descriptions of what your loops actually do</em>.</p>
+
+      <div class="callout c-key">
+        <span class="lbl">What is n?</span>
+        <b><code>n</code> = the size of your input.</b> A list of 500 numbers → n = 500. A JSON with 10 million rows → n = 10,000,000. A 42-character string → n = 42. Whatever you're looping over, that's your n.
+      </div>
+
+      <h3>Now translate every Big-O you'll ever see</h3>
+
+      <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Plain-English meaning</th>
+            <th>Code that looks like this</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>O(1)</b><br><em style="font-size:.88em;color:#5c5c6a">say "oh of one"</em></td>
+            <td><b>Constant.</b> Same number of steps no matter how big n is. 1 step for 10 items, 1 step for 10 billion.</td>
+            <td><code>dict[key]</code> · <code>list[i]</code></td>
+          </tr>
+          <tr>
+            <td><b>O(log n)</b><br><em style="font-size:.88em;color:#5c5c6a">say "oh log n"</em></td>
+            <td><b>Halving.</b> Each step throws away half the remaining data. n = 1M → only ~20 steps.</td>
+            <td>Binary search on sorted data</td>
+          </tr>
+          <tr>
+            <td><b>O(n)</b><br><em style="font-size:.88em;color:#5c5c6a">say "oh of n"</em></td>
+            <td><b>Linear.</b> Look at each of the n items once. Double n → double the work.</td>
+            <td><code>for x in list</code> · <code>sum(list)</code></td>
+          </tr>
+          <tr>
+            <td><b>O(n log n)</b><br><em style="font-size:.88em;color:#5c5c6a">say "oh n log n"</em></td>
+            <td>For each of n items, do log n work. This is what sorting costs.</td>
+            <td><code>sorted(list)</code></td>
+          </tr>
+          <tr>
+            <td><b>O(n²)</b><br><em style="font-size:.88em;color:#5c5c6a">say "oh of n squared"</em></td>
+            <td><b>Pairs.</b> For each item, look at every OTHER item = n × n. Double n → 4× the work.</td>
+            <td>Nested loop over same list</td>
+          </tr>
+          <tr>
+            <td><b>O(2ⁿ)</b><br><em style="font-size:.88em;color:#5c5c6a">say "oh two to the n"</em></td>
+            <td><b>Every subset.</b> The little <code>ⁿ</code> means the number 2 multiplied by itself <em>n</em> times (<code>2 × 2 × 2 × …</code>). Each extra item DOUBLES the work. n = 60 → longer than the age of the universe.</td>
+            <td>Brute-force "try every combination"</td>
+          </tr>
+          <tr>
+            <td><b>O(n!)</b><br><em style="font-size:.88em;color:#5c5c6a">say "oh of n factorial"</em></td>
+            <td><b>Every possible order.</b> The <code>!</code> is the maths symbol for <b>factorial</b> — it means <em>multiply n by every smaller whole number down to 1</em>: <code>5! = 5 × 4 × 3 × 2 × 1 = 120</code>. So <code>15! ≈ 1.3 trillion</code>. Doesn't run on any real hardware.</td>
+            <td>Naive travelling-salesman</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout c-note">
+        <span class="lbl">"But why <code>log n</code>? Why not something scarier?"</span>
+        Because <b>log₂(n)</b> literally answers: <em>"how many times can I halve n before I reach 1?"</em> That's the definition of log base 2. n = 1,024 → 10 halvings. n = 1M → 20. n = 1B → 30. Doubling n only adds ONE more step — which is why O(log n) is almost as good as O(1).<br><br>
+        <b>"Why n² and not n log n?"</b> Because the algorithm does <em>n work × n more work</em>, not <em>n × log n</em>. The name <b>describes what happens</b> — it's not a formula to memorize.
+      </div>
+    </section>
+
+    <section class="scene" id="s5">
+      <div class="scene-head"><div class="badge">5</div><div><div class="eyebrow">Chapter 1 · Vocabulary you need first</div><h2 class="scene-title">Why is it called "Big-O"? A 30-second history</h2></div></div>
+
+      <p>Last mystery — why the name "Big-O" and not "alpha-O" or something else?</p>
+
+      <div class="callout c-key">
+        <span class="lbl">The origin — one line</span>
+        The letter <b>O</b> stands for the German word <b>Ordnung</b> — "<b>order of</b>", as in "on the order of magnitude". Coined by German mathematician <b>Paul Bachmann in 1894</b> to describe how math functions grow. Picked up for computer science by <b>Donald Knuth in 1976</b> to describe how algorithms scale. That's the whole story. The letter itself doesn't matter — if a French mathematician had invented it, we'd be saying "Grand-O" today.
+      </div>
+
+      <div class="callout c-note">
+        <span class="lbl">"Why BIG O? Are there other O's?"</span>
+        Yes — Bachmann's original family had <b>three</b> notations for how a function grows. Here's the whole set:
+
+        <div class="table-wrap" style="margin:12px 0 6px">
+        <table>
+          <thead>
+            <tr>
+              <th>Notation</th>
+              <th>Read as</th>
+              <th>What it means</th>
+              <th>When you'll see it</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>O(f)</b></td>
+              <td>"Big-O of f"</td>
+              <td><b>Upper bound</b> — grows <em>at most</em> this fast (the <b>worst case</b>)</td>
+              <td><b>99%</b> — code reviews, interviews, docs</td>
+            </tr>
+            <tr>
+              <td><b>Ω(f)</b></td>
+              <td>"Big-Omega of f"</td>
+              <td><b>Lower bound</b> — grows <em>at least</em> this fast (the <b>best case</b>)</td>
+              <td>Rare — academic proofs</td>
+            </tr>
+            <tr>
+              <td><b>Θ(f)</b></td>
+              <td>"Big-Theta of f"</td>
+              <td><b>Tight bound</b> — grows <em>exactly</em> this fast (worst = best)</td>
+              <td>Rare — precise algorithm analysis</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        In real engineering conversations, everyone just says <b>"Big-O"</b> and means <b>"the worst case"</b>. You'll never hear a colleague say <em>"this is Big-Theta of n log n"</em> in a code review. Knowing Big-O covers 99% of what you need.
+      </div>
+
+      <div class="callout c-good">
+        <span class="lbl">The one takeaway</span>
+        Read "<code>O(n²)</code>" out loud as <b>"on the order of n squared operations"</b>. That's it. Big-O isn't a formula or magic — it's a <b>label</b> for how an algorithm's cost grows with its input. Chapter 1 done. Now let's use these words to describe real code.
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- === CHAPTER 2 · FIRST APPLIED TEST ======================= -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s6">
+      <div class="scene-head"><div class="badge">6</div><div><div class="eyebrow">Chapter 2 · First applied test</div><h2 class="scene-title">Two functions, same answer, ~100,000× time gap — the vocabulary in action</h2></div></div>
+
+      <p>You now know the words. Let's use them on real code. Here are two Python functions. They take the same input. They return the same correct answer. On a list of 10 items you cannot tell them apart — both feel instant. But as the input grows, the growth patterns you just learned about start to pull apart.</p>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">Version A</span>
+          <p style="margin:0;font-size:14px"><b>Do the numbers contain any duplicate?</b></p>
+<pre><span class="kw">def</span> <span class="fn">has_duplicate_slow</span>(nums):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="nu">1</span>, <span class="fn">len</span>(nums)):
+            <span class="kw">if</span> nums[i] == nums[j]:
+                <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">Version B</span>
+          <p style="margin:0;font-size:14px"><b>Do the numbers contain any duplicate?</b></p>
+<pre><span class="kw">def</span> <span class="fn">has_duplicate_fast</span>(nums):
+    seen = <span class="fn">set</span>()
+    <span class="kw">for</span> n <span class="kw">in</span> nums:
+        <span class="kw">if</span> n <span class="kw">in</span> seen:
+            <span class="kw">return</span> <span class="kw">True</span>
+        seen.add(n)
+    <span class="kw">return</span> <span class="kw">False</span></pre>
+        </div>
+      </div>
+
+      <h3>Run it yourself — paste this whole block into <code>main.py</code></h3>
+      <pre><span class="kw">import</span> random, time
+
+<span class="kw">def</span> <span class="fn">has_duplicate_slow</span>(nums):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="nu">1</span>, <span class="fn">len</span>(nums)):
+            <span class="kw">if</span> nums[i] == nums[j]: <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">def</span> <span class="fn">has_duplicate_fast</span>(nums):
+    seen = <span class="fn">set</span>()
+    <span class="kw">for</span> n <span class="kw">in</span> nums:
+        <span class="kw">if</span> n <span class="kw">in</span> seen: <span class="kw">return</span> <span class="kw">True</span>
+        seen.add(n)
+    <span class="kw">return</span> <span class="kw">False</span>
+
+nums = random.sample(<span class="fn">range</span>(<span class="nu">10_000_000</span>), <span class="nu">20_000</span>)   <span class="cm"># 20k unique ints — no duplicates</span>
+
+<span class="kw">for</span> name, fn <span class="kw">in</span> [(<span class="st">"slow"</span>, has_duplicate_slow), (<span class="st">"fast"</span>, has_duplicate_fast)]:
+    t = time.perf_counter()
+    fn(nums)
+    <span class="fn">print</span>(<span class="fn">f</span><span class="st">"{name}: {(time.perf_counter() - t) * 1000:.1f} ms"</span>)
+
+<span class="cm"># Expected output on a laptop (numbers vary by machine, ratio doesn't):</span>
+<span class="cm"># slow: ~1000-3000 ms</span>
+<span class="cm"># fast: ~1 ms</span>
+<span class="cm"># → same input, same answer, ~1,000× time difference</span></pre>
+
+      <p>Same output. Both correct. Both readable. But measure them on lists of increasing size and you get this pattern on any machine:</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Input size (n)</th>
+            <th style="color:#0d7a37">Version B — fast</th>
+            <th style="color:#a1102f">Version A — slow</th>
+            <th>B is faster by…</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><b>1,000</b> items</td><td>0.02 ms</td><td>15 ms</td><td>750×</td></tr>
+          <tr><td><b>10,000</b> items</td><td>0.2 ms</td><td>1.5 s</td><td>7,500×</td></tr>
+          <tr><td><b>100,000</b> items</td><td>2 ms</td><td>≈ 2.5 min</td><td>75,000×</td></tr>
+          <tr><td><b>1,000,000</b> items</td><td>≈ 25 ms</td><td>≈ 4+ hours</td><td>≈ 570,000×</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p style="font-size:13.5px;color:var(--muted);margin-top:-4px;font-style:italic">The absolute numbers depend on your laptop. The <b>ratios</b> — the growth pattern — are the same on every machine on Earth. That's what "complexity" describes.</p>
+
+      <p>Same picture as a chart — see how quickly the two curves pull apart:</p>
+
+      <div class="growth" style="padding:18px 20px 14px">
+        <svg class="growth-svg" viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Version A vs Version B timing chart">
+          <!-- axes -->
+          <line x1="80" y1="30" x2="80" y2="220" stroke="#5c5c6a" stroke-width="1.5"/>
+          <line x1="80" y1="220" x2="600" y2="220" stroke="#5c5c6a" stroke-width="1.5"/>
+          <!-- y label -->
+          <text x="80" y="20" font-family="Inter,Arial,sans-serif" font-size="11" fill="#5c5c6a" font-weight="700" text-anchor="middle">time (log scale)</text>
+          <!-- x label -->
+          <text x="340" y="252" font-family="Inter,Arial,sans-serif" font-size="11" fill="#5c5c6a" font-weight="700" text-anchor="middle">input size (n) →</text>
+          <!-- x ticks -->
+          <g font-family="Inter,Arial,sans-serif" font-size="10" fill="#5c5c6a" text-anchor="middle">
+            <line x1="80"  y1="220" x2="80"  y2="224" stroke="#5c5c6a"/><text x="80"  y="238">1K</text>
+            <line x1="210" y1="220" x2="210" y2="224" stroke="#5c5c6a"/><text x="210" y="238">10K</text>
+            <line x1="340" y1="220" x2="340" y2="224" stroke="#5c5c6a"/><text x="340" y="238">100K</text>
+            <line x1="470" y1="220" x2="470" y2="224" stroke="#5c5c6a"/><text x="470" y="238">1M</text>
+            <line x1="600" y1="220" x2="600" y2="224" stroke="#5c5c6a"/><text x="600" y="238">10M</text>
+          </g>
+          <!-- Version B: O(n) — grows linearly on log-x, so appears as a gentle slope -->
+          <polyline points="80,205 210,190 340,175 470,160 600,145" fill="none" stroke="#16a34a" stroke-width="3.5"/>
+          <circle cx="80" cy="205" r="4" fill="#16a34a"/>
+          <circle cx="210" cy="190" r="4" fill="#16a34a"/>
+          <circle cx="340" cy="175" r="4" fill="#16a34a"/>
+          <circle cx="470" cy="160" r="4" fill="#16a34a"/>
+          <circle cx="600" cy="145" r="4" fill="#16a34a"/>
+          <text x="600" y="132" font-family="Inter,Arial,sans-serif" font-size="12" fill="#16a34a" font-weight="800" text-anchor="end">Version B — O(n) · stays fast forever</text>
+          <!-- Version A: O(n²) — much steeper on log-x -->
+          <polyline points="80,175 210,120 340,60 470,35 600,25" fill="none" stroke="#e11d48" stroke-width="3.5"/>
+          <circle cx="80" cy="175" r="4" fill="#e11d48"/>
+          <circle cx="210" cy="120" r="4" fill="#e11d48"/>
+          <circle cx="340" cy="60" r="4" fill="#e11d48"/>
+          <circle cx="470" cy="35" r="4" fill="#e11d48"/>
+          <circle cx="600" cy="25" r="4" fill="#e11d48"/>
+          <text x="470" y="20" font-family="Inter,Arial,sans-serif" font-size="12" fill="#e11d48" font-weight="800" text-anchor="middle">Version A — O(n²) · dies on real data</text>
+          <!-- callout at 1M mark -->
+          <line x1="470" y1="35" x2="470" y2="160" stroke="#5c5c6a" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="482" y="100" font-family="Inter,Arial,sans-serif" font-size="10" fill="#5c5c6a" font-style="italic">at n=1M · gap ≈ 570,000×</text>
+        </svg>
+      </div>
+      <p style="font-size:13px;color:var(--muted);text-align:center;font-style:italic;margin:-4px 0 12px">Version A is <b>O(n²)</b>. Version B is <b>O(n)</b>. At n = 1M, that's the difference between an API endpoint that responds in 25 ms and one that never responds at all.</p>
+
+      <div class="callout c-warn">
+        <span class="lbl">This is not a made-up example — it actually happens</span>
+        This exact bug — <code>if x in list</code> inside a loop — is the single most common speed bug in real Python code. It works fine in dev on 100 rows. It passes code review. It ships. Then production hits real data, an endpoint stops responding, and the on-call engineer gets paged in the middle of the night.
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">The skill this lesson gives you</span>
+        Both functions look clean. Both are correct. But being able to <em>see</em> — just by reading the code, without running it — that Version A gets 100,000× slower as data grows and Version B stays fast, is exactly what separates a junior developer from a senior one. That skill has a name: <b>Big-O thinking</b>. Chapter 2 done. Now let's put clear names to what you just watched — the three simple rules that turn any messy formula into a Big-O label, and the full picture of only seven growth curves you'll ever meet.
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- === CHAPTER 3 · THE RULES & THE SEVEN CURVES ============== -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s7">
+      <div class="scene-head"><div class="badge">7</div><div><div class="eyebrow">Chapter 3 · The rules &amp; the seven curves</div><h2 class="scene-title">The rules of Big-O — drop constants, keep the dominant term</h2></div></div>
+
+      <p>Three simple rules turn any messy formula into a clean Big-O label. But first: where does that formula even come from? You <b>count operations</b> in the code, block by block. Once you have the total, the rules throw away the noise and leave you with the Big-O.</p>
+
+      <div class="callout c-key">
+        <span class="lbl">What counts as ONE step? (and yes — an <code>if</code> is just one step)</span>
+        Almost every single line of code = <b>O(1)</b>, one step. That covers: assignments (<code>x = 5</code>), arithmetic (<code>a + b</code>), comparisons (<code>x &lt; y</code>), <code>dict</code>/<code>set</code> lookups (<code>d[k]</code>, <code>k in s</code>), list indexing (<code>lst[i]</code>), a function call like <code>len(lst)</code>, and — the one people ask about — <b>an <code>if</code> check</b>. An <code>if</code> by itself is one comparison, so <b>O(1)</b>. An <code>if</code> only becomes <b>O(n)</b> when it lives <em>inside a loop</em> that runs n times — and even then, the LOOP is doing the O(n) work, not the <code>if</code>.
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">What makes a loop O(n)?</span>
+        A loop that runs <b>n times</b> (where n depends on input size) turns everything inside it into <em>n × (cost of the body)</em>. If the body is O(1), the loop is <b>O(n)</b>. If the body contains another loop of size n, you get <em>n × n</em> = <b>O(n²)</b>. That is the whole game — <b>Big-O is basically counting how many times your loops run</b>.
+      </div>
+
+      <h3>Concrete example — count first, then apply the rules</h3>
+      <p>Here's a small function that counts even numbers in a list. It has a setup, a loop, an <code>if</code> inside the loop, and a return. Let's count every step:</p>
+
+<pre><span class="kw">def</span> <span class="fn">count_evens</span>(nums):
+    total = <span class="nu">0</span>                    <span class="cm"># 1 step   (setup)</span>
+    n = <span class="fn">len</span>(nums)                <span class="cm"># 1 step   (setup)</span>
+    <span class="kw">for</span> num <span class="kw">in</span> nums:             <span class="cm"># loop runs n times ↓</span>
+        <span class="kw">if</span> num % <span class="nu">2</span> == <span class="nu">0</span>:         <span class="cm">#   1 step per pass  (the if check)</span>
+            total = total + <span class="nu">1</span>    <span class="cm">#   1 step per pass  (only when even)</span>
+    <span class="kw">return</span> total                 <span class="cm"># 1 step   (return)</span>
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">count_evens</span>([<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>, <span class="nu">6</span>]))   <span class="cm"># → 3</span></pre>
+
+      <p>Add it up. Setup = 2 steps. Loop runs <code>n</code> times, doing up to 2 steps per pass (the <code>if</code> plus the <code>total = total + 1</code>). Return = 1 step. Total: <code>2 + 2n + 1 = 2n + 3</code> steps. Now the rules turn that into a clean label.</p>
+
+      <div class="callout c-key">
+        <span class="lbl">The three rules — all of Big-O notation</span>
+        <b>1. Drop constants:</b> <code>O(2n + 3)</code> becomes <code>O(n)</code>. The "2" (two things done inside the loop) and the "3" (setup + return) depend on the exact code and the exact machine — not on <em>how</em> the algorithm grows. Only the <code>n</code> tells us the growth pattern.<br>
+        <b>2. Keep only the dominant term:</b> <code>O(n² + 100n + 500)</code> becomes <code>O(n²)</code>. At large <code>n</code>, the biggest term drowns everything else.<br>
+        <b>3. Report the worst case:</b> unless asked otherwise, "the complexity" = the slowest case on the meanest input.
+      </div>
+
+      <p>Applying rule 1 to <code>count_evens</code>: <code>2n + 3</code> → <b>O(n)</b>. That's the answer. Even though the function has a setup, an <code>if</code>, an assignment inside the loop, and a return — the <b>one loop over n items</b> is the only thing that controls how the work grows.</p>
+
+      <h3>Why we drop constants and small terms — the numbers</h3>
+      <p>Still feel weird throwing away the "2" and the "3"? Watch what happens as <code>n</code> gets big. Compare Algorithm A doing <code>3n + 100</code> steps vs Algorithm B doing <code>0.5n²</code>:</p>
+
+      <table>
+        <tr><th>n</th><th>A: 3n + 100</th><th>B: 0.5n²</th><th>Winner</th></tr>
+        <tr><td>10</td><td>130</td><td>50</td><td>B</td></tr>
+        <tr><td>1,000</td><td>3,100</td><td>500,000</td><td>A (by 160×)</td></tr>
+        <tr><td>1,000,000</td><td>3M</td><td>500 billion</td><td>A (by 167,000×)</td></tr>
+      </table>
+
+      <p>The <code>0.5</code>, the <code>+100</code>, even the <code>×3</code> — none of them matter at scale. All that matters is <b>the exponent on n</b>. That is exactly why we call these simply <b>O(n)</b> and <b>O(n²)</b> — the Big-O throws away the noise and keeps the shape.</p>
+
+      <div class="callout c-note">
+        <span class="lbl">Best · average · worst — always report the worst</span>
+        Some algorithms behave very differently on different inputs: <b>quicksort</b> is O(n log n) average but O(n²) worst-case (bad pivot). <b>Dict lookup</b> is O(1) average but O(n) worst-case (hash collisions — almost never happens in practice). When asked "what's the complexity?", answer with <b>the worst case</b>. That's the number that matters when your code hits production data you cannot predict.
+      </div>
+    </section>
+
+    <section class="scene" id="s8">
+      <div class="scene-head"><div class="badge">8</div><div><div class="eyebrow">Chapter 3 · The rules &amp; the seven curves</div><h2 class="scene-title">The seven curves at a glance — the whole Big-O landscape</h2></div></div>
+
+      <p>Every Big-O you'll ever see falls onto one of these seven curves. Memorize this picture — everything after is just filling it in.</p>
+
+      <div class="growth">
+        <h4>Operations vs input size (n) — the seven growth curves</h4>
+        <svg class="growth-svg" viewBox="0 0 780 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Big-O growth curves chart">
+          <!-- Chart area: x from 80 to 640 (width 560), y from 40 to 340 (height 300) -->
+          <!-- Shaded zones: DANGER top, CAREFUL middle, SAFE bottom -->
+          <rect x="80" y="40" width="560" height="90" fill="#ffe4ea" opacity=".45"/>
+          <rect x="80" y="130" width="560" height="90" fill="#fff3d6" opacity=".45"/>
+          <rect x="80" y="220" width="560" height="120" fill="#e4f6e9" opacity=".45"/>
+          <!-- Zone labels — left-aligned inside each zone, well-placed -->
+          <text x="94" y="62" font-family="Inter,Arial,sans-serif" font-size="11" fill="#a1102f" font-weight="800">DANGER — can't handle real-world sized input</text>
+          <text x="94" y="152" font-family="Inter,Arial,sans-serif" font-size="11" fill="#8a5b00" font-weight="800">CAREFUL — sometimes unavoidable (sorting lives here)</text>
+          <text x="94" y="242" font-family="Inter,Arial,sans-serif" font-size="11" fill="#0d7a37" font-weight="800">SAFE — scales to any input size you'll ever hit</text>
+          <!-- Axes -->
+          <line x1="80" y1="40" x2="80" y2="340" stroke="#5c5c6a" stroke-width="1.5"/>
+          <line x1="80" y1="340" x2="640" y2="340" stroke="#5c5c6a" stroke-width="1.5"/>
+          <!-- Y axis label -->
+          <text x="80" y="28" font-family="Inter,Arial,sans-serif" font-size="12" fill="#5c5c6a" font-weight="800" text-anchor="middle">operations</text>
+          <!-- X axis label -->
+          <text x="360" y="378" font-family="Inter,Arial,sans-serif" font-size="12" fill="#5c5c6a" font-weight="800" text-anchor="middle">input size (n) →</text>
+          <!-- X axis ticks -->
+          <g font-family="Inter,Arial,sans-serif" font-size="10" fill="#5c5c6a" text-anchor="middle">
+            <line x1="80"  y1="340" x2="80"  y2="345" stroke="#5c5c6a"/><text x="80"  y="358">small n</text>
+            <line x1="640" y1="340" x2="640" y2="345" stroke="#5c5c6a"/><text x="640" y="358">large n</text>
+          </g>
+          <!-- Y axis ticks (grid lines) -->
+          <line x1="80" y1="130" x2="640" y2="130" stroke="#e6e4dc" stroke-dasharray="2 4"/>
+          <line x1="80" y1="220" x2="640" y2="220" stroke="#e6e4dc" stroke-dasharray="2 4"/>
+
+          <!-- =========== THE SEVEN CURVES =========== -->
+          <!-- Each curve ends at a specific (x, y) and its label sits right there. -->
+
+          <!-- O(1) — dead flat in the SAFE zone. Line: (80,325) → (620,325) -->
+          <line x1="80" y1="325" x2="620" y2="325" stroke="#16a34a" stroke-width="3.5"/>
+          <circle cx="620" cy="325" r="4.5" fill="#16a34a"/>
+          <text x="628" y="329" font-family="Inter,Arial,sans-serif" font-size="13" fill="#16a34a" font-weight="800">O(1)</text>
+
+          <!-- O(log n) — very gentle rise in SAFE. Endpoint (620, 275) -->
+          <path d="M 80 315 Q 240 295 420 285 T 620 275" fill="none" stroke="#0d7a37" stroke-width="3.5"/>
+          <circle cx="620" cy="275" r="4.5" fill="#0d7a37"/>
+          <text x="628" y="279" font-family="Inter,Arial,sans-serif" font-size="13" fill="#0d7a37" font-weight="800">O(log n)</text>
+
+          <!-- O(n) — straight line from bottom-left, ends at (620, 205) in CAREFUL zone -->
+          <line x1="80" y1="335" x2="620" y2="205" stroke="#2f6bff" stroke-width="3.5"/>
+          <circle cx="620" cy="205" r="4.5" fill="#2f6bff"/>
+          <text x="628" y="209" font-family="Inter,Arial,sans-serif" font-size="13" fill="#2f6bff" font-weight="800">O(n)</text>
+
+          <!-- O(n log n) — slight curve above O(n), ends at (620, 145) in CAREFUL -->
+          <path d="M 80 335 Q 330 285 620 145" fill="none" stroke="#7b3ff2" stroke-width="3.5"/>
+          <circle cx="620" cy="145" r="4.5" fill="#7b3ff2"/>
+          <text x="628" y="149" font-family="Inter,Arial,sans-serif" font-size="13" fill="#7b3ff2" font-weight="800">O(n log n)</text>
+
+          <!-- O(n²) — parabolic, shoots into DANGER, exits at TOP at x=560 -->
+          <path d="M 80 335 Q 350 320 490 130 T 560 40" fill="none" stroke="#f59e0b" stroke-width="3.5"/>
+          <circle cx="560" cy="40" r="4.5" fill="#f59e0b"/>
+          <text x="560" y="30" font-family="Inter,Arial,sans-serif" font-size="13" fill="#a86200" font-weight="800" text-anchor="middle">O(n²)</text>
+
+          <!-- O(2ⁿ) — exponential hockey stick, exits TOP at x=380 -->
+          <path d="M 80 335 Q 220 328 320 240 T 380 40" fill="none" stroke="#e11d48" stroke-width="3.5"/>
+          <circle cx="380" cy="40" r="4.5" fill="#e11d48"/>
+          <text x="380" y="30" font-family="Inter,Arial,sans-serif" font-size="13" fill="#e11d48" font-weight="800" text-anchor="middle">O(2ⁿ)</text>
+
+          <!-- O(n!) — most extreme, exits TOP at x=220 -->
+          <path d="M 80 335 Q 140 328 190 240 T 220 40" fill="none" stroke="#7b1030" stroke-width="3.5"/>
+          <circle cx="220" cy="40" r="4.5" fill="#7b1030"/>
+          <text x="220" y="30" font-family="Inter,Arial,sans-serif" font-size="13" fill="#7b1030" font-weight="800" text-anchor="middle">O(n!)</text>
+        </svg>
+        <div class="growth-legend">
+          <div class="lg"><span class="sw" style="background:#16a34a"></span>O(1) constant · instant</div>
+          <div class="lg"><span class="sw" style="background:#0d7a37"></span>O(log n) halving · instant</div>
+          <div class="lg"><span class="sw" style="background:#2f6bff"></span>O(n) walk once · fast</div>
+          <div class="lg"><span class="sw" style="background:#7b3ff2"></span>O(n log n) sorting · fine</div>
+          <div class="lg"><span class="sw" style="background:#f59e0b"></span>O(n²) nested loops · danger</div>
+          <div class="lg"><span class="sw" style="background:#e11d48"></span>O(2ⁿ) every subset · impossible</div>
+          <div class="lg"><span class="sw" style="background:#7b1030"></span>O(n!) every possible order · impossible</div>
+        </div>
+      </div>
+
+      <h3>Same picture as concrete numbers — n = 1M at 1 ns per operation</h3>
+
+      <table>
+        <tr><th>Class</th><th>n = 1,000</th><th>n = 1,000,000</th><th>Wall-clock at n = 1M</th></tr>
+        <tr><td><b>O(1)</b></td><td>1</td><td>1</td><td>1 ns · <b style="color:var(--green)">instant</b></td></tr>
+        <tr><td><b>O(log n)</b></td><td>≈ 10</td><td>≈ 20</td><td>20 ns · <b style="color:var(--green)">instant</b></td></tr>
+        <tr><td><b>O(n)</b></td><td>1,000</td><td>1,000,000</td><td>1 ms · <b style="color:var(--green)">instant to the eye</b></td></tr>
+        <tr><td><b>O(n log n)</b></td><td>≈ 10,000</td><td>≈ 20M</td><td>20 ms · <b style="color:var(--blue)">fine</b></td></tr>
+        <tr><td><b>O(n²)</b></td><td>1,000,000</td><td>10¹²</td><td>≈ 17 minutes · <b style="color:var(--amber)">danger</b></td></tr>
+        <tr><td><b>O(2ⁿ)</b></td><td>huge</td><td>absurd</td><td>longer than universe · <b style="color:var(--red)">impossible</b></td></tr>
+      </table>
+
+      <div class="callout c-warn">
+        <span class="lbl">The mental line to draw</span>
+        For real production data (a million rows, users, log lines), the practical cutoff is <b>O(n log n)</b>. Anything faster is safe forever. <b>O(n²) or worse</b> is a code smell that will bite you the day data grows. Your job as an engineer is to keep code above the red line.
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- === CHAPTER 4 · THE FOUR YOU USE DAILY ==================== -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s9">
+      <div class="scene-head"><div class="badge">9</div><div><div class="eyebrow">Chapter 4 · The four you use daily</div><h2 class="scene-title">O(1) — constant time · "same speed forever"</h2></div></div>
+
+      <p>Same time whether the collection has 10 elements or 10 billion. The fastest complexity class that exists.</p>
+
+      <pre><span class="cm"># Dict / set lookup — O(1)</span>
+scores = {<span class="st">"Alice"</span>: <span class="nu">95</span>, <span class="st">"Bob"</span>: <span class="nu">87</span>}
+score = scores[<span class="st">"Alice"</span>]      <span class="cm"># instant, whether dict has 2 or 2 million entries</span>
+exists = <span class="st">"Bob"</span> <span class="kw">in</span> scores    <span class="cm"># hash lookup — instant, regardless of size</span>
+
+<span class="cm"># List operations at the end — O(1)</span>
+items = []
+items.append(<span class="st">"x"</span>)               <span class="cm"># adding to end is instant</span>
+first = items[<span class="nu">0</span>]                 <span class="cm"># direct memory jump by index</span>
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(score, exists, first)     <span class="cm"># → 95 True x</span></pre>
+
+      <div class="callout c-key">
+        <span class="lbl">Why hash lookup is O(1)</span>
+        A hash function converts <code>"Alice"</code> into a number, and that number tells Python <em>exactly where</em> in memory to look. No scanning. This is the entire reason <code>dict</code> and <code>set</code> exist as separate types from <code>list</code>.
+      </div>
+
+      <h3>What's O(1) in Python</h3>
+      <div class="chips">
+        <span class="chip green"><code>d[k]</code> · dict read/write</span>
+        <span class="chip green"><code>x in set/dict</code> · membership</span>
+        <span class="chip green"><code>list[i]</code> · index access</span>
+        <span class="chip green"><code>list.append/pop()</code> · end ops</span>
+        <span class="chip green"><code>len(anything)</code> · cached</span>
+        <span class="chip green"><code>deque.appendleft(x)</code></span>
+      </div>
+    </section>
+
+    <section class="scene" id="s10">
+      <div class="scene-head"><div class="badge">10</div><div><div class="eyebrow">Chapter 4 · The four you use daily</div><h2 class="scene-title">O(log n) — logarithmic · "cut the problem in half"</h2></div></div>
+
+      <p>Every step throws away half the remaining data. Doubling <code>n</code> only adds ONE extra step — nearly as good as O(1) even on billions of items.</p>
+
+      <pre><span class="kw">def</span> <span class="fn">binary_search</span>(sorted_list, target):
+    low, high = <span class="nu">0</span>, <span class="fn">len</span>(sorted_list) - <span class="nu">1</span>
+    <span class="kw">while</span> low <= high:
+        mid = (low + high) // <span class="nu">2</span>
+        <span class="kw">if</span> sorted_list[mid] == target:
+            <span class="kw">return</span> mid
+        <span class="kw">elif</span> sorted_list[mid] < target:
+            low = mid + <span class="nu">1</span>        <span class="cm"># throw away the lower half</span>
+        <span class="kw">else</span>:
+            high = mid - <span class="nu">1</span>       <span class="cm"># throw away the upper half</span>
+    <span class="kw">return</span> -<span class="nu">1</span>
+
+<span class="cm"># ── try it ──</span>
+nums = <span class="fn">list</span>(<span class="fn">range</span>(<span class="nu">1</span>, <span class="nu">1_000_001</span>))               <span class="cm"># sorted 1..1M</span>
+<span class="fn">print</span>(<span class="fn">binary_search</span>(nums, <span class="nu">742_913</span>))          <span class="cm"># → 742912 (found in ~20 steps)</span>
+<span class="fn">print</span>(<span class="fn">binary_search</span>(nums, -<span class="nu">1</span>))                 <span class="cm"># → -1  (not there)</span></pre>
+
+      <div class="stat-grid">
+        <div class="stat"><div class="n green">10</div><div class="lbl">steps to find any item in 1,000</div></div>
+        <div class="stat"><div class="n green">20</div><div class="lbl">steps in 1,000,000</div></div>
+        <div class="stat"><div class="n green">30</div><div class="lbl">steps in 1 billion</div></div>
+      </div>
+
+      <h3>Where O(log n) shows up</h3>
+      <div class="chips">
+        <span class="chip blue">Binary search on sorted data</span>
+        <span class="chip blue">Database index lookup (B-tree)</span>
+        <span class="chip blue"><code>heapq.heappush/heappop</code></span>
+        <span class="chip blue"><code>bisect.insort</code></span>
+      </div>
+
+      <div class="callout c-warn">
+        <span class="lbl">Binary search requires sorted data</span>
+        You can't binary-search an unsorted list. Sorting first (O(n log n)) just to search once is <em>slower</em> than a plain O(n) scan. Binary search only pays off when you keep the list sorted and search it many times.
+      </div>
+    </section>
+
+    <section class="scene" id="s11">
+      <div class="scene-head"><div class="badge">11</div><div><div class="eyebrow">Chapter 4 · The four you use daily</div><h2 class="scene-title">O(n) — linear · "look at every item once"</h2></div></div>
+
+      <p>Work scales in direct proportion to the input — double <code>n</code>, double the time. The honest baseline for any problem that must look at all the data.</p>
+
+      <pre><span class="kw">def</span> <span class="fn">find_max</span>(numbers):
+    maximum = numbers[<span class="nu">0</span>]
+    <span class="kw">for</span> num <span class="kw">in</span> numbers:      <span class="cm"># visits every element exactly once</span>
+        <span class="kw">if</span> num > maximum:
+            maximum = num
+    <span class="kw">return</span> maximum
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">find_max</span>([<span class="nu">3</span>, <span class="nu">1</span>, <span class="nu">4</span>, <span class="nu">1</span>, <span class="nu">5</span>, <span class="nu">9</span>, <span class="nu">2</span>, <span class="nu">6</span>]))     <span class="cm"># → 9</span></pre>
+
+      <h3>What's O(n) in Python</h3>
+      <div class="chips">
+        <span class="chip blue"><code>for x in list</code></span>
+        <span class="chip blue"><code>sum/min/max(list)</code></span>
+        <span class="chip blue"><code>x in list</code> · linear scan!</span>
+        <span class="chip blue"><code>list.count/index(x)</code></span>
+        <span class="chip blue"><code>set(list)</code> · building</span>
+        <span class="chip blue"><code>Counter(iterable)</code></span>
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">O(n) is the sweet spot</span>
+        You can't do better than O(n) when you genuinely need to look at every item. A "clean O(n) solution" is often the correct target — going faster requires skipping data (impossible for many problems) or precomputing (which costs its own time). Two O(n) operations in a row is still O(n). What kills you is O(n) <em>inside</em> another O(n) — that's O(n²).
+      </div>
+    </section>
+
+    <section class="scene" id="s12">
+      <div class="scene-head"><div class="badge">12</div><div><div class="eyebrow">Chapter 4 · The four you use daily</div><h2 class="scene-title">O(n log n) — linearithmic · "the price of sorting"</h2></div></div>
+
+      <p>Slightly slower than linear, still totally practical at scale. This is the complexity of every good comparison sort — Python's <code>sorted()</code> uses <b>Timsort</b>, which is O(n log n).</p>
+
+      <pre>numbers = [<span class="nu">3</span>, <span class="nu">1</span>, <span class="nu">4</span>, <span class="nu">1</span>, <span class="nu">5</span>, <span class="nu">9</span>, <span class="nu">2</span>, <span class="nu">6</span>]
+sorted_nums = <span class="fn">sorted</span>(numbers)      <span class="cm"># O(n log n) — Timsort, returns a NEW list</span>
+numbers.sort()                     <span class="cm"># O(n log n) — sorts in-place</span>
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(sorted_nums)                  <span class="cm"># → [1, 1, 2, 3, 4, 5, 6, 9]</span>
+<span class="fn">print</span>(numbers)                      <span class="cm"># → [1, 1, 2, 3, 4, 5, 6, 9]  (mutated)</span></pre>
+
+      <div class="callout c-key">
+        <span class="lbl">Why sorting is n log n</span>
+        Any comparison sort must compare each of n elements to about <code>log n</code> others to place it. Total: <code>n × log n</code>. This is a proven mathematical lower bound — you cannot sort by comparisons any faster. On 1M items = ~20M ops = ~200 ms on a laptop.
+      </div>
+
+      <div class="callout c-warn">
+        <span class="lbl">The subtle O(n² log n) trap</span>
+        Calling <code>sorted()</code> <em>inside</em> a loop over the same data turns O(n log n) into O(n² log n). Always sort once, outside the loop.
+      </div>
+    </section>
+
+    <section class="scene" id="s13">
+      <div class="scene-head"><div class="badge">13</div><div><div class="eyebrow">Chapter 4 · The four you use daily</div><h2 class="scene-title">O(n²) — quadratic · the danger zone (and beyond)</h2></div></div>
+
+      <p>Time grows with the <b>square</b> of the input. Double <code>n</code> → 4× work. 10× <code>n</code> → 100× work. This is where most real-world performance bugs live.</p>
+
+      <pre><span class="kw">def</span> <span class="fn">has_duplicate_slow</span>(items):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(items)):          <span class="cm"># n iterations</span>
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="nu">1</span>, <span class="fn">len</span>(items)): <span class="cm"># ~n iterations (nested)</span>
+            <span class="kw">if</span> items[i] == items[j]:
+                <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span>
+<span class="cm"># n = 100 → 5,000 ops. n = 1,000 → 500,000. n = 100,000 → 5 BILLION (minutes).</span>
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">has_duplicate_slow</span>([<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">2</span>]))   <span class="cm"># → True</span>
+<span class="fn">print</span>(<span class="fn">has_duplicate_slow</span>([<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>]))   <span class="cm"># → False</span></pre>
+
+      <div class="callout c-warn">
+        <span class="lbl">Rule of thumb</span>
+        <b>Any nested loop over the same input is a red flag.</b> Not always wrong (matrix math genuinely needs it), but it should trigger the question: <em>can I use a set/dict/sort to skip that inner loop?</em>
+      </div>
+
+      <h3>Beyond quadratic — you'll never write these on purpose</h3>
+
+      <p><b>O(2ⁿ) exponential</b> — every element doubles the work. Classic trap: recursive Fibonacci without memoization dies at n ≈ 35. <b>O(n!) factorial</b> — every permutation. Naïve travelling salesman. At n = 40, an O(2ⁿ) algorithm already takes minutes. The fix is almost always <code>@functools.cache</code>:</p>
+
+      <h3>Run it yourself — feel the exponential vs. linear difference</h3>
+      <pre><span class="kw">import</span> time
+<span class="kw">from</span> functools <span class="kw">import</span> cache
+
+<span class="cm"># EXPONENTIAL — O(2ⁿ), dies at n ≈ 35</span>
+<span class="kw">def</span> <span class="fn">fib_slow</span>(n):
+    <span class="kw">if</span> n < <span class="nu">2</span>: <span class="kw">return</span> n
+    <span class="kw">return</span> <span class="fn">fib_slow</span>(n-<span class="nu">1</span>) + <span class="fn">fib_slow</span>(n-<span class="nu">2</span>)
+
+<span class="cm"># LINEAR — one decorator collapses it to O(n)</span>
+<span class="kw">@cache</span>
+<span class="kw">def</span> <span class="fn">fib_fast</span>(n):
+    <span class="kw">if</span> n < <span class="nu">2</span>: <span class="kw">return</span> n
+    <span class="kw">return</span> <span class="fn">fib_fast</span>(n-<span class="nu">1</span>) + <span class="fn">fib_fast</span>(n-<span class="nu">2</span>)
+
+t = time.perf_counter(); <span class="fn">fib_slow</span>(<span class="nu">32</span>); <span class="fn">print</span>(<span class="fn">f</span><span class="st">"fib_slow(32): {(time.perf_counter()-t)*1000:.0f} ms"</span>)
+t = time.perf_counter(); <span class="fn">fib_fast</span>(<span class="nu">500</span>); <span class="fn">print</span>(<span class="fn">f</span><span class="st">"fib_fast(500): {(time.perf_counter()-t)*1000:.3f} ms"</span>)
+
+<span class="cm"># Expected on a laptop (varies by machine, ratio doesn't):</span>
+<span class="cm"># fib_slow(32):  ~100-500 ms   ← doubles every +1 to n. Try 35 → seconds. 40 → minutes.</span>
+<span class="cm"># fib_fast(500): under 1 ms    ← handles 15× bigger n, almost free</span></pre>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- ============ CHAPTER 5 · SPACE COMPLEXITY ================= -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s14">
+      <div class="scene-head"><div class="badge">14</div><div><div class="eyebrow">Chapter 5 · Space complexity</div><h2 class="scene-title">What space complexity is — the other half of Big-O</h2></div></div>
+
+      <p>Everything so far measured <b>time</b>. Space complexity measures the <b>extra memory</b> your algorithm needs beyond the input itself — using the exact same notation. Same rules, same intuition.</p>
+
+      <div class="compare">
+        <div class="card good">
+          <span class="tag">O(1) space — a few variables, never grows</span>
+<pre><span class="kw">def</span> <span class="fn">find_max</span>(nums):
+    m = nums[<span class="nu">0</span>]        <span class="cm"># 1 variable</span>
+    <span class="kw">for</span> n <span class="kw">in</span> nums:
+        <span class="kw">if</span> n > m: m = n
+    <span class="kw">return</span> m
+<span class="cm"># O(n) time, O(1) space</span>
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">find_max</span>([<span class="nu">3</span>, <span class="nu">7</span>, <span class="nu">2</span>, <span class="nu">9</span>, <span class="nu">4</span>]))  <span class="cm"># → 9</span></pre>
+        </div>
+        <div class="card bad">
+          <span class="tag">O(n) space — extra container scales with input</span>
+<pre><span class="kw">def</span> <span class="fn">deduplicate</span>(items):
+    seen = <span class="fn">set</span>()          <span class="cm"># grows up to n</span>
+    out = []               <span class="cm"># grows up to n</span>
+    <span class="kw">for</span> x <span class="kw">in</span> items:
+        <span class="kw">if</span> x <span class="kw">not</span> <span class="kw">in</span> seen:
+            seen.add(x); out.append(x)
+    <span class="kw">return</span> out
+<span class="cm"># O(n) time, O(n) space</span>
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">deduplicate</span>([<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">1</span>, <span class="nu">3</span>, <span class="nu">2</span>, <span class="nu">4</span>]))  <span class="cm"># → [1, 2, 3, 4]</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-note">
+        <span class="lbl">Time and space are INDEPENDENT — always answer as a pair</span>
+        Code can be O(n) time / O(1) space (a scan with counters), O(n) time / O(n) space (building a set), or O(n²) time / O(1) space (nested loops that only compare). Strong answer = <b>"O(?) time, O(?) space"</b> — both halves.
+      </div>
+    </section>
+
+    <section class="scene" id="s15">
+      <div class="scene-head"><div class="badge">15</div><div><div class="eyebrow">Chapter 5 · Space complexity</div><h2 class="scene-title">O(1) · O(n) · O(n²) space — the three classes you'll see</h2></div></div>
+
+      <p>The dangerous one is <b>O(n²) space</b> — one 2D structure sized by the input:</p>
+
+      <pre><span class="cm"># Distance matrix between every pair of points — O(n²) space</span>
+<span class="kw">def</span> <span class="fn">all_pair_distances</span>(points):
+    n = <span class="fn">len</span>(points)
+    matrix = [[<span class="nu">0</span>] * n <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n)]    <span class="cm"># n × n cells</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+            <span class="cm"># distance between two (x, y) points</span>
+            dx, dy = points[i][<span class="nu">0</span>] - points[j][<span class="nu">0</span>], points[i][<span class="nu">1</span>] - points[j][<span class="nu">1</span>]
+            matrix[i][j] = (dx * dx + dy * dy) ** <span class="nu">0.5</span>
+    <span class="kw">return</span> matrix               <span class="cm"># O(n²) time AND O(n²) space</span>
+
+<span class="cm"># ── try it ──</span>
+pts = [(<span class="nu">0</span>, <span class="nu">0</span>), (<span class="nu">3</span>, <span class="nu">4</span>), (<span class="nu">6</span>, <span class="nu">8</span>)]
+<span class="kw">for</span> row <span class="kw">in</span> <span class="fn">all_pair_distances</span>(pts):
+    <span class="fn">print</span>([<span class="fn">round</span>(x, <span class="nu">1</span>) <span class="kw">for</span> x <span class="kw">in</span> row])
+<span class="cm"># → [0.0, 5.0, 10.0]</span>
+<span class="cm"># → [5.0, 0.0, 5.0]</span>
+<span class="cm"># → [10.0, 5.0, 0.0]</span></pre>
+
+      <div class="callout c-warn">
+        <span class="lbl">The physical wall — space bugs CRASH, they don't run slowly</span>
+        1M items × 1M cells × 8 bytes = <b>8 terabytes of RAM</b>. Your laptop has 16 GB. O(n²) space simply cannot run on real data — <code>MemoryError</code> before the algorithm finishes.
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">Don't forget: recursion depth is space too</span>
+        Every recursive call adds a stack frame. Recursion that goes n levels deep = <b>O(n) space</b> even if it allocates nothing. Converting recursion to iteration often collapses O(n) space back to O(1).
+      </div>
+
+      <div class="ladder">
+        <div class="rung">
+          <div class="name">O(1) space</div>
+          <div class="bar" style="background:var(--green);width:8%">tiny · never grows</div>
+          <div class="note">counters, pointers</div>
+        </div>
+        <div class="rung">
+          <div class="name">O(log n) space</div>
+          <div class="bar" style="background:#0d7a37;width:14%">grows very slowly</div>
+          <div class="note">recursion that halves each call</div>
+        </div>
+        <div class="rung">
+          <div class="name">O(n) space</div>
+          <div class="bar" style="background:var(--blue);width:45%">grows with input</div>
+          <div class="note">extra list / set / dict / recursion stack</div>
+        </div>
+        <div class="rung">
+          <div class="name">O(n²) space</div>
+          <div class="bar" style="background:var(--red);width:96%">crashes on big inputs</div>
+          <div class="note">n × n matrix, all-pairs table</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" id="s16">
+      <div class="scene-head"><div class="badge">16</div><div><div class="eyebrow">Chapter 5 · Space complexity</div><h2 class="scene-title">Time ↔ space tradeoff — the most useful engineering lever</h2></div></div>
+
+      <p>The deepest idea in this whole lesson: <b>time and space are exchangeable</b>. Spend memory to save time (caching), or spend CPU to save memory (streaming). Seeing this lever is what makes you an engineer.</p>
+
+      <h3>Direction 1 — Trade space for time (memoization)</h3>
+      <p>Fibonacci recursion recomputes the same subproblems billions of times. Store them once:</p>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(2ⁿ) time — dies at n ≈ 35</span>
+<pre><span class="kw">def</span> <span class="fn">fib_slow</span>(n):
+    <span class="kw">if</span> n < <span class="nu">2</span>: <span class="kw">return</span> n
+    <span class="kw">return</span> <span class="fn">fib_slow</span>(n-<span class="nu">1</span>) + <span class="fn">fib_slow</span>(n-<span class="nu">2</span>)
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">fib_slow</span>(<span class="nu">10</span>))     <span class="cm"># → 55</span>
+<span class="fn">print</span>(<span class="fn">fib_slow</span>(<span class="nu">30</span>))     <span class="cm"># → 832040 (~1 sec — try 35!)</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) time — handles n = 100,000</span>
+<pre><span class="kw">from</span> functools <span class="kw">import</span> cache
+<span class="kw">@cache</span>
+<span class="kw">def</span> <span class="fn">fib_fast</span>(n):
+    <span class="kw">if</span> n < <span class="nu">2</span>: <span class="kw">return</span> n
+    <span class="kw">return</span> <span class="fn">fib_fast</span>(n-<span class="nu">1</span>) + <span class="fn">fib_fast</span>(n-<span class="nu">2</span>)
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">fib_fast</span>(<span class="nu">100</span>))    <span class="cm"># → 354224848179261915075 (instant)</span></pre>
+        </div>
+      </div>
+
+      <h3>Direction 2 — Trade time for space (streaming)</h3>
+      <p>Reading a huge file. Loading it all is O(n) space. Streaming line-by-line is O(1) space:</p>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n) space — crashes on 10 GB log</span>
+<pre><span class="kw">with</span> <span class="fn">open</span>(<span class="st">"huge.log"</span>) <span class="kw">as</span> f:
+    lines = f.readlines()   <span class="cm"># entire file into RAM</span>
+    errors = [l <span class="kw">for</span> l <span class="kw">in</span> lines <span class="kw">if</span> <span class="st">"ERROR"</span> <span class="kw">in</span> l]</pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(1) space — any file size</span>
+<pre>errors = []
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"huge.log"</span>) <span class="kw">as</span> f:
+    <span class="kw">for</span> line <span class="kw">in</span> f:        <span class="cm"># one line at a time</span>
+        <span class="kw">if</span> <span class="st">"ERROR"</span> <span class="kw">in</span> line:
+            errors.append(line)</pre>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-top:-2px;font-style:italic">To try this: create a small <code>huge.log</code> file with a few lines containing "ERROR", then run either version.</p>
+
+      <div class="callout c-key">
+        <span class="lbl">The engineering rule of thumb</span>
+        <b>Spend memory to save time — until you can't afford the memory.</b> RAM is cheap, wall-clock is expensive. "Trade space for time" is the default lever (this is what Redis, CDNs, DB indexes, and memoized ML pipelines all do). Reverse it only when input threatens memory (huge files, streaming data, embedded systems).
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- ============ CHAPTER 6 · FIVE TRAPS ======================= -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s17">
+      <div class="scene-head"><div class="badge">17</div><div><div class="eyebrow">Chapter 6 · Five traps</div><h2 class="scene-title">Trap 1 — <code>x in list</code> inside a loop</h2></div></div>
+
+      <p>The most common O(n²) bug in production Python. Even experienced developers write it without thinking.</p>
+
+      <div class="callout c-note" style="padding:12px 18px">
+        <span class="lbl">The task</span>
+        Given two lists, return every element that appears in <b>both</b> lists. Example: <code>find_common([1, 2, 3, 4], [3, 4, 5, 6])</code> → <code>[3, 4]</code>. A student would naturally reach for the left-hand code. Read on for why that's the trap.
+      </div>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n²) — trap</span>
+<pre><span class="kw">def</span> <span class="fn">find_common_slow</span>(list1, list2):
+    common = []
+    <span class="kw">for</span> item <span class="kw">in</span> list1:      <span class="cm"># O(n)</span>
+        <span class="kw">if</span> item <span class="kw">in</span> list2:    <span class="cm"># O(m) — list scan!</span>
+            common.append(item)
+    <span class="kw">return</span> common
+<span class="cm"># Total: O(n × m) ≈ O(n²)</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) — fix</span>
+<pre><span class="kw">def</span> <span class="fn">find_common_fast</span>(list1, list2):
+    set2 = <span class="fn">set</span>(list2)          <span class="cm"># O(m) once</span>
+    <span class="kw">return</span> [x <span class="kw">for</span> x <span class="kw">in</span> list1 <span class="kw">if</span> x <span class="kw">in</span> set2]
+<span class="cm"># O(n + m). Linear.</span></pre>
+        </div>
+      </div>
+
+      <h3>Run it yourself — see the ~1,000× speed-up</h3>
+      <pre><span class="kw">import</span> random, time
+
+<span class="kw">def</span> <span class="fn">find_common_slow</span>(list1, list2):
+    <span class="kw">return</span> [x <span class="kw">for</span> x <span class="kw">in</span> list1 <span class="kw">if</span> x <span class="kw">in</span> list2]     <span class="cm"># O(n × m)</span>
+
+<span class="kw">def</span> <span class="fn">find_common_fast</span>(list1, list2):
+    set2 = <span class="fn">set</span>(list2)
+    <span class="kw">return</span> [x <span class="kw">for</span> x <span class="kw">in</span> list1 <span class="kw">if</span> x <span class="kw">in</span> set2]     <span class="cm"># O(n + m)</span>
+
+list1 = random.sample(<span class="fn">range</span>(<span class="nu">100_000</span>), <span class="nu">10_000</span>)
+list2 = random.sample(<span class="fn">range</span>(<span class="nu">100_000</span>), <span class="nu">10_000</span>)
+
+<span class="kw">for</span> name, fn <span class="kw">in</span> [(<span class="st">"slow"</span>, find_common_slow), (<span class="st">"fast"</span>, find_common_fast)]:
+    t = time.perf_counter()
+    fn(list1, list2)
+    <span class="fn">print</span>(<span class="fn">f</span><span class="st">"{name}: {(time.perf_counter() - t) * 1000:.1f} ms"</span>)
+
+<span class="cm"># Expected on a laptop (numbers vary, ratio doesn't):</span>
+<span class="cm"># slow: ~300-1500 ms</span>
+<span class="cm"># fast: under 2 ms  ← ~500-1000× faster from ONE line: list → set</span></pre>
+
+      <div class="callout c-warn">
+        <span class="lbl">Same syntax, wildly different cost</span>
+        <code>x in something</code> looks instant. But <code>in</code> on a <b>list/tuple</b> scans every element = O(n). On a <b>set/dict</b> it hashes = O(1). <b>The reflex:</b> whenever you see <code>if x in Y:</code> inside a loop, ask "is Y a set or dict? If not, why not?"
+      </div>
+    </section>
+
+    <section class="scene" id="s18">
+      <div class="scene-head"><div class="badge">18</div><div><div class="eyebrow">Chapter 6 · Five traps</div><h2 class="scene-title">Trap 2 — Nested loops when a set / dict would work</h2></div></div>
+
+      <p>Any time you're comparing every element against every other element ("does this pair exist?"), a hash-based structure collapses O(n²) → O(n).</p>
+
+      <div class="callout c-note" style="padding:12px 18px">
+        <span class="lbl">The task</span>
+        Given a list of numbers and a target sum, return the <b>indices</b> of the two numbers that add up to the target. Example: <code>two_sum([2, 7, 11, 15], 9)</code> → <code>(0, 1)</code> (because <code>2 + 7 = 9</code>). The natural "check every pair" answer on the left is O(n²) — the right side does it in one pass.
+      </div>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n²) — two-sum, brute force</span>
+<pre><span class="kw">def</span> <span class="fn">two_sum_slow</span>(nums, target):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="nu">1</span>, <span class="fn">len</span>(nums)):
+            <span class="kw">if</span> nums[i] + nums[j] == target:
+                <span class="kw">return</span> (i, j)
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">two_sum_slow</span>([<span class="nu">2</span>, <span class="nu">7</span>, <span class="nu">11</span>, <span class="nu">15</span>], <span class="nu">9</span>))  <span class="cm"># → (0, 1)</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) — with a hash map</span>
+<pre><span class="kw">def</span> <span class="fn">two_sum_fast</span>(nums, target):
+    seen = {}                <span class="cm"># value → index</span>
+    <span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> (target - n) <span class="kw">in</span> seen:
+            <span class="kw">return</span> (seen[target - n], i)
+        seen[n] = i
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">two_sum_fast</span>([<span class="nu">2</span>, <span class="nu">7</span>, <span class="nu">11</span>, <span class="nu">15</span>], <span class="nu">9</span>))  <span class="cm"># → (0, 1)</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">The interview trick behind this</span>
+        They're not testing whether you can write nested loops. They're testing whether you can <b>invert the search</b>: instead of "for every pair, check if it works", rephrase to "for each element, have I already seen its partner?" That reframe powers <b>duplicate detection, first-unique-character, anagram grouping, longest substring without repetition</b>, and dozens of others.
+      </div>
+    </section>
+
+    <section class="scene" id="s19">
+      <div class="scene-head"><div class="badge">19</div><div><div class="eyebrow">Chapter 6 · Five traps</div><h2 class="scene-title">Trap 3 — String concatenation with <code>+=</code> in a loop</h2></div></div>
+
+      <p>Strings in Python are <b>immutable</b>. Every <code>+=</code> creates a whole new string and copies every character across. Over n iterations, that's <code>1+2+...+n = n(n+1)/2</code> character copies = <b>O(n²)</b>.</p>
+
+      <div class="callout c-note" style="padding:12px 18px">
+        <span class="lbl">The task</span>
+        Join a list of words into one space-separated string. Example: <code>["one", "two", "three", "four"]</code> → <code>"one two three four "</code>. Beginners reach for the <code>+=</code> loop on the left — which sneaks in an O(n²) copy every iteration.
+      </div>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n²) — trap</span>
+<pre>words = [<span class="st">"one"</span>, <span class="st">"two"</span>, <span class="st">"three"</span>, <span class="st">"four"</span>]
+result = <span class="st">""</span>
+<span class="kw">for</span> word <span class="kw">in</span> words:
+    result += word + <span class="st">" "</span>   <span class="cm"># new string each iteration</span>
+<span class="fn">print</span>(result)               <span class="cm"># → "one two three four "</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) — fix</span>
+<pre>words = [<span class="st">"one"</span>, <span class="st">"two"</span>, <span class="st">"three"</span>, <span class="st">"four"</span>]
+result = <span class="st">" "</span>.join(words) + <span class="st">" "</span>  <span class="cm"># one allocation</span>
+<span class="fn">print</span>(result)               <span class="cm"># → "one two three four "</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-good">
+        <span class="lbl">Same trap in disguise</span>
+        <code>tuple += (x,)</code>, repeated <code>bytes</code> concatenation, chained <code>list1 + list2 + list3</code> — all hit the same "immutable → O(n²) copy" wall. <b>Always: collect into a list, then <code>join</code> or convert at the end.</b>
+      </div>
+    </section>
+
+    <section class="scene" id="s20">
+      <div class="scene-head"><div class="badge">20</div><div><div class="eyebrow">Chapter 6 · Five traps</div><h2 class="scene-title">Trap 4 — Sorting when you only need the extreme</h2></div></div>
+
+      <p>You want the smallest item (or top 3). The wasteful reflex is to sort everything.</p>
+
+      <div class="callout c-note" style="padding:12px 18px">
+        <span class="lbl">The task</span>
+        Given a list of numbers, return the <b>smallest</b> value and the <b>3 smallest</b> values. Example: <code>[42, 7, 99, 3, 51, 18]</code> → smallest = <code>3</code>, top-3 smallest = <code>[3, 7, 18]</code>. The trap on the left sorts the <em>whole</em> list even though you only need the tail — the right side uses the exact tool for the job.
+      </div>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n log n) — waste</span>
+<pre>numbers = [<span class="nu">42</span>, <span class="nu">7</span>, <span class="nu">99</span>, <span class="nu">3</span>, <span class="nu">51</span>, <span class="nu">18</span>]
+smallest = <span class="fn">sorted</span>(numbers)[<span class="nu">0</span>]     <span class="cm"># sorts everything</span>
+top_3    = <span class="fn">sorted</span>(numbers)[:<span class="nu">3</span>]    <span class="cm"># sorts everything</span>
+<span class="fn">print</span>(smallest, top_3)          <span class="cm"># → 3 [3, 7, 18]</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) — right tool</span>
+<pre><span class="kw">import</span> heapq
+numbers = [<span class="nu">42</span>, <span class="nu">7</span>, <span class="nu">99</span>, <span class="nu">3</span>, <span class="nu">51</span>, <span class="nu">18</span>]
+smallest = <span class="fn">min</span>(numbers)              <span class="cm"># O(n)</span>
+top_3 = heapq.<span class="fn">nsmallest</span>(<span class="nu">3</span>, numbers) <span class="cm"># O(n log k)</span>
+<span class="fn">print</span>(smallest, top_3)          <span class="cm"># → 3 [3, 7, 18]</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">Don't do more than the problem asks</span>
+        Sorting arranges <em>every</em> element relative to <em>every</em> other. For the extreme, top-k, or "is it sorted?" — use <code>min</code>, <code>max</code>, <code>heapq.nsmallest/nlargest</code>, <code>bisect</code>. On top-10 from 1M items, <code>nsmallest</code> is dramatically faster than a full sort.
+      </div>
+    </section>
+
+    <section class="scene" id="s21">
+      <div class="scene-head"><div class="badge">21</div><div><div class="eyebrow">Chapter 6 · Five traps</div><h2 class="scene-title">Trap 5 — Hidden O(n²) in one-liners &amp; comprehensions</h2></div></div>
+
+      <p>Comprehensions <em>look</em> tight but hide loops. If a comprehension calls an O(n) function on each element, it silently becomes O(n²).</p>
+
+      <div class="callout c-note" style="padding:12px 18px">
+        <span class="lbl">The task</span>
+        Given a list, return every item that appears more than once (each duplicate kept every time it shows up). Example: <code>[1, 2, 3, 2, 4, 3, 5]</code> → <code>[2, 3, 2, 3]</code>. The one-liner on the left looks clean but calls an O(n) helper inside the comprehension — a hidden O(n²).
+      </div>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n²) — hidden</span>
+<pre>items = [<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">2</span>, <span class="nu">4</span>, <span class="nu">3</span>, <span class="nu">5</span>]
+duplicates = [x <span class="kw">for</span> x <span class="kw">in</span> items <span class="kw">if</span> items.<span class="fn">count</span>(x) > <span class="nu">1</span>]
+<span class="cm">#                                  ^^^^^ items.count is O(n)!</span>
+<span class="fn">print</span>(duplicates)   <span class="cm"># → [2, 3, 2, 3]</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) — fix</span>
+<pre><span class="kw">from</span> collections <span class="kw">import</span> Counter
+items = [<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">2</span>, <span class="nu">4</span>, <span class="nu">3</span>, <span class="nu">5</span>]
+counts = Counter(items)             <span class="cm"># O(n) once</span>
+duplicates = [x <span class="kw">for</span> x <span class="kw">in</span> items <span class="kw">if</span> counts[x] > <span class="nu">1</span>]
+<span class="fn">print</span>(duplicates)   <span class="cm"># → [2, 3, 2, 3]</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-warn">
+        <span class="lbl">Rule of thumb for one-liners</span>
+        A comprehension's Big-O is <b>(items) × (cost of the expression per item)</b>. If the expression calls <code>count</code>, <code>index</code>, <code>x in list</code>, or any helper that iterates, that expression is O(n) — and the comprehension is O(n²). <b>Look inside the brackets, not just at them.</b>
+      </div>
+
+      <div class="callout c-good">
+        <span class="lbl">The 5 traps summed up</span>
+        These five are 90% of real-world Python performance bugs — <b><code>in list</code> in a loop, nested loops that should be a set, string <code>+=</code> that should be <code>join</code>, <code>sorted</code> when you needed <code>min</code>, and comprehensions that look linear but aren't.</b> Recognise these and you've eliminated most future outages.
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- ============ CHAPTER 7 · DATA STRUCTURES CHEAT SHEET ====== -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s22">
+      <div class="scene-head"><div class="badge">22</div><div><div class="eyebrow">Chapter 7 · Data structures cheat sheet</div><h2 class="scene-title">The one table — every Python container, every operation</h2></div></div>
+
+      <p>Memorize this table and you'll pick the right container 95% of the time — which means you'll avoid 95% of Big-O bugs.</p>
+
+      <table>
+        <tr><th>Operation</th><th><code>list</code></th><th><code>set</code></th><th><code>dict</code></th><th><code>deque</code></th><th><code>heap</code></th></tr>
+        <tr><td>Access by index</td><td><b class="good">O(1)</b></td><td>—</td><td>—</td><td>O(n)</td><td>—</td></tr>
+        <tr><td>Membership <code>x in c</code></td><td class="bad"><b>O(n)</b></td><td><b class="good">O(1)</b></td><td><b class="good">O(1)</b></td><td>O(n)</td><td>O(n)</td></tr>
+        <tr><td>Insert at end</td><td><b class="good">O(1)*</b></td><td><b class="good">O(1)</b></td><td><b class="good">O(1)</b></td><td><b class="good">O(1)</b></td><td>O(log n)</td></tr>
+        <tr><td>Insert at front</td><td class="bad"><b>O(n)</b></td><td>—</td><td>—</td><td><b class="good">O(1)</b></td><td>—</td></tr>
+        <tr><td>Remove from front</td><td class="bad"><b>O(n)</b></td><td>—</td><td>—</td><td><b class="good">O(1)</b></td><td>—</td></tr>
+        <tr><td>Get min</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td><b class="good">O(1)</b></td></tr>
+      </table>
+      <p style="font-size:12.5px;color:var(--muted);margin-top:-6px">* amortized — occasional resize is O(n) but rare enough to average out</p>
+
+      <style>td .bad,td b.bad{color:var(--red)}td .good,td b.good{color:#0d7a37}</style>
+
+      <div class="callout c-key">
+        <span class="lbl">The 4-question decision flow</span>
+        1. <b>Need key → value lookup?</b> → <code>dict</code><br>
+        2. <b>Need "does X exist" fast?</b> → <code>set</code><br>
+        3. <b>Need to add/remove from BOTH ends?</b> → <code>deque</code><br>
+        4. <b>Need "always the smallest"?</b> → <code>heapq</code><br>
+        Otherwise → <code>list</code>. Also worth knowing: <code>Counter</code> (tallying), <code>defaultdict</code> (grouping), <code>bisect</code> (O(log n) insert into sorted list).
+      </div>
+    </section>
+
+    <section class="scene" id="s23">
+      <div class="scene-head"><div class="badge">23</div><div><div class="eyebrow">Chapter 7 · Data structures cheat sheet</div><h2 class="scene-title">The right data structure kills the algorithm</h2></div></div>
+
+      <p>The biggest performance wins don't come from clever algorithms. They come from noticing "this problem is O(n²) with a list, but O(n) with a set." <b>Two examples that show up in every codebase:</b></p>
+
+      <h3>Example 1 — Removing duplicates while preserving order</h3>
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n²) — <code>x not in result</code> is O(n)!</span>
+<pre>items = [<span class="nu">3</span>, <span class="nu">1</span>, <span class="nu">4</span>, <span class="nu">1</span>, <span class="nu">5</span>, <span class="nu">9</span>, <span class="nu">2</span>, <span class="nu">6</span>, <span class="nu">5</span>, <span class="nu">3</span>]
+result = []
+<span class="kw">for</span> item <span class="kw">in</span> items:
+    <span class="kw">if</span> item <span class="kw">not</span> <span class="kw">in</span> result:  <span class="cm"># scans result!</span>
+        result.append(item)
+<span class="fn">print</span>(result)   <span class="cm"># → [3, 1, 4, 5, 9, 2, 6]</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) — set for lookups, list for order</span>
+<pre>items = [<span class="nu">3</span>, <span class="nu">1</span>, <span class="nu">4</span>, <span class="nu">1</span>, <span class="nu">5</span>, <span class="nu">9</span>, <span class="nu">2</span>, <span class="nu">6</span>, <span class="nu">5</span>, <span class="nu">3</span>]
+seen, result = <span class="fn">set</span>(), []
+<span class="kw">for</span> item <span class="kw">in</span> items:
+    <span class="kw">if</span> item <span class="kw">not</span> <span class="kw">in</span> seen:    <span class="cm"># O(1)</span>
+        seen.add(item)
+        result.append(item)
+<span class="fn">print</span>(result)   <span class="cm"># → [3, 1, 4, 5, 9, 2, 6]</span></pre>
+        </div>
+      </div>
+
+      <h3>Example 2 — Sliding window over a stream</h3>
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n²) — <code>list.pop(0)</code> shifts everything</span>
+<pre>stream = [<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>, <span class="nu">6</span>, <span class="nu">7</span>, <span class="nu">8</span>]
+k, window = <span class="nu">3</span>, []
+<span class="kw">for</span> item <span class="kw">in</span> stream:
+    window.append(item)
+    <span class="kw">if</span> <span class="fn">len</span>(window) > k:
+        window.pop(<span class="nu">0</span>)          <span class="cm"># O(n)!</span>
+    <span class="fn">print</span>(window)
+<span class="cm"># → [1] [1,2] [1,2,3] [2,3,4] [3,4,5] ...</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) — deque, both ends O(1)</span>
+<pre><span class="kw">from</span> collections <span class="kw">import</span> deque
+stream = [<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>, <span class="nu">6</span>, <span class="nu">7</span>, <span class="nu">8</span>]
+window = deque(maxlen=<span class="nu">3</span>)   <span class="cm"># auto-drops old</span>
+<span class="kw">for</span> item <span class="kw">in</span> stream:
+    window.append(item)      <span class="cm"># O(1)</span>
+    <span class="fn">print</span>(<span class="fn">list</span>(window))
+<span class="cm"># → same output, ~1,000× faster on 1M-item streams</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-good">
+        <span class="lbl">The senior habit — refuse the wrong container</span>
+        When you catch yourself writing a nested loop, an <code>x in list</code>, or a <code>list.pop(0)</code> — <em>stop</em>. Ask: "am I using the wrong container?" Changing one <code>list</code> to a <code>set</code>/<code>dict</code>/<code>deque</code> often collapses the complexity by a whole order.
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- ============ CHAPTER 8 · INTERVIEW PATTERNS =============== -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s24">
+      <div class="scene-head"><div class="badge">24</div><div><div class="eyebrow">Chapter 8 · Interview patterns</div><h2 class="scene-title">Two-sum — the pattern every top-tier interview tests</h2></div></div>
+
+      <p>Given a list of numbers and a target, find two numbers that add up to it. Possibly <em>the</em> most-asked interview question — it separates candidates who see O(n) from those who write nested loops.</p>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">O(n²) — brute force</span>
+<pre><span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="nu">1</span>, <span class="fn">len</span>(nums)):
+            <span class="kw">if</span> nums[i] + nums[j] == target:
+                <span class="kw">return</span> (i, j)
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">two_sum</span>([<span class="nu">2</span>, <span class="nu">7</span>, <span class="nu">11</span>, <span class="nu">15</span>], <span class="nu">9</span>))   <span class="cm"># → (0, 1)</span>
+<span class="fn">print</span>(<span class="fn">two_sum</span>([<span class="nu">3</span>, <span class="nu">2</span>, <span class="nu">4</span>], <span class="nu">6</span>))          <span class="cm"># → (1, 2)</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">O(n) time · O(n) space — the trick</span>
+<pre><span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):
+    seen = {}    <span class="cm"># value → index</span>
+    <span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        <span class="kw">if</span> (target - n) <span class="kw">in</span> seen:
+            <span class="kw">return</span> (seen[target - n], i)
+        seen[n] = i
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">two_sum</span>([<span class="nu">2</span>, <span class="nu">7</span>, <span class="nu">11</span>, <span class="nu">15</span>], <span class="nu">9</span>))   <span class="cm"># → (0, 1)</span>
+<span class="fn">print</span>(<span class="fn">two_sum</span>([<span class="nu">3</span>, <span class="nu">2</span>, <span class="nu">4</span>], <span class="nu">6</span>))          <span class="cm"># → (1, 2)</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">The senior answer, out loud</span>
+        <em>"Naïvely I'd try every pair — O(n²) time, O(1) space. But I can trade some space to get down to O(n): as I walk the list once, for each number I check if its complement <code>target - n</code> has already been seen — dict lookup, O(1). That's O(n) time and O(n) space. It's the classic 'invert the search' trick."</em>
+      </div>
+
+      <div class="callout c-warn">
+        <span class="lbl">The follow-up trap</span>
+        Interviewer: <em>"OK, now what if the list is <b>sorted</b>?"</em> The hash-map still works, but there's now an <b>O(1) space</b> solution with two pointers (one at each end, walk inward). Same family as "3-sum" and "container with most water". Recognising when input structure lets you switch strategies is what they test next.
+      </div>
+    </section>
+
+    <section class="scene" id="s25">
+      <div class="scene-head"><div class="badge">25</div><div><div class="eyebrow">Chapter 8 · Interview patterns</div><h2 class="scene-title">The other patterns — duplicates &amp; frequencies</h2></div></div>
+
+      <p>Once you internalise the hash-map trick from two-sum, this whole family collapses into one-liners.</p>
+
+      <h3>Pattern A — Duplicate detection</h3>
+      <pre><span class="kw">def</span> <span class="fn">has_duplicate</span>(nums):
+    <span class="kw">return</span> <span class="fn">len</span>(<span class="fn">set</span>(nums)) < <span class="fn">len</span>(nums)   <span class="cm"># O(n)</span>
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">has_duplicate</span>([<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">2</span>]))       <span class="cm"># → True</span>
+<span class="fn">print</span>(<span class="fn">has_duplicate</span>([<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>]))       <span class="cm"># → False</span></pre>
+
+      <h3>Pattern B — Word / element frequency</h3>
+      <pre><span class="kw">from</span> collections <span class="kw">import</span> Counter
+
+words = <span class="st">"the quick brown fox jumps over the lazy dog the fox"</span>.split()
+counts = Counter(words)                     <span class="cm"># O(n) — tf-idf, log analysis, tallies</span>
+top_3 = counts.<span class="fn">most_common</span>(<span class="nu">3</span>)               <span class="cm"># O(k log 3)</span>
+
+<span class="fn">print</span>(counts[<span class="st">"the"</span>])                        <span class="cm"># → 3</span>
+<span class="fn">print</span>(top_3)                                <span class="cm"># → [('the', 3), ('fox', 2), ('quick', 1)]</span></pre>
+
+      <div class="callout c-key">
+        <span class="lbl">The shared pattern behind all of them</span>
+        Every problem in this family is <b>"walk the input once and remember the right thing"</b>. The "right thing" is either a <b>set</b> (seen? yes/no) or a <b>Counter/dict</b> (seen how many times?). Once you recognise this shape — duplicate detection, first-unique-character, anagram grouping, longest-substring-without-repetition — you go straight to O(n). No nested loops, no confusion.
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- ============ CHAPTER 9 · ANALYSE YOUR OWN CODE ============ -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s26">
+      <div class="scene-head"><div class="badge">26</div><div><div class="eyebrow">Chapter 9 · Analyse your own code</div><h2 class="scene-title">The 4-step method — work out the Big-O of any function in 30 seconds</h2></div></div>
+
+      <p>Given code you didn't write, how do you tell its Big-O? Four steps, always same order.</p>
+
+      <div class="tree">STEP 1 · COUNT NESTED LOOPS OVER THE INPUT
+   │  1 loop → O(n)   ·  2 nested → O(n²)   ·  3 nested → O(n³)
+   ▼
+STEP 2 · WHAT LIVES INSIDE THE LOOPS?
+   │  Constant work (arithmetic, dict lookup)   → multiplies by 1
+   │  Another O(n) call (list `in`, sort, sum)  → multiplies by n
+   │  Recursion                                 → treat as another loop
+   ▼
+STEP 3 · HIDDEN WORK OUTSIDE THE LOOPS?
+   │  `sorted(data)` before the loop → adds O(n log n)
+   │  I/O (file read, DB query)      → often the real bottleneck
+   ▼
+STEP 4 · DROP CONSTANTS, KEEP THE DOMINANT TERM
+   │  O(n) + O(n log n) = O(n log n)   ·   O(n²) + O(n) = O(n²)
+   ▼
+     YOU HAVE THE BIG-O</div>
+
+      <h3>Worked example — walk the method through a real function</h3>
+
+      <pre><span class="kw">def</span> <span class="fn">group_by_first_letter</span>(words):
+    words = <span class="fn">sorted</span>(words)                        <span class="cm"># [A] O(n log n)</span>
+    groups = {}
+    <span class="kw">for</span> w <span class="kw">in</span> words:                             <span class="cm"># [B] loop × n</span>
+        first = w[<span class="nu">0</span>]                              <span class="cm"># [C] O(1)</span>
+        <span class="kw">if</span> first <span class="kw">not</span> <span class="kw">in</span> groups:                   <span class="cm"># [D] O(1) dict</span>
+            groups[first] = []
+        groups[first].append(w)                     <span class="cm"># [E] O(1)</span>
+    <span class="kw">return</span> groups
+
+<span class="cm"># ── try it ──</span>
+<span class="fn">print</span>(<span class="fn">group_by_first_letter</span>([<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"avocado"</span>, <span class="st">"blueberry"</span>, <span class="st">"cherry"</span>]))
+<span class="cm"># → {'a': ['apple', 'avocado'], 'b': ['banana', 'blueberry'], 'c': ['cherry']}</span></pre>
+
+      <p><b>Add it up:</b> [A] O(n log n) outside + [B]×([C]+[D]+[E]) = n × O(1) = O(n) inside. Total: <b>O(n log n) + O(n) = O(n log n)</b>. Space: O(n) for the dict.</p>
+
+      <div class="callout c-key">
+        <span class="lbl">Common analysis mistakes</span>
+        <b>1.</b> Counting <code>x in list</code> as O(1). It's O(n) unless it's really a set/dict.<br>
+        <b>2.</b> Assuming <code>sorted()</code> in a loop only sorts once — it re-sorts every iteration = O(n² log n).<br>
+        <b>3.</b> Ignoring recursion depth as space. A function that recurses n deep uses O(n) stack even if it allocates nothing.
+      </div>
+    </section>
+
+    <section class="scene" id="s27">
+      <div class="scene-head"><div class="badge">27</div><div><div class="eyebrow">Chapter 9 · Analyse your own code</div><h2 class="scene-title">The senior-answer template — state Big-O out loud</h2></div></div>
+
+      <p>When asked "what's the complexity of this?" — in a code review, a design doc, or an interview — the strong answer follows this 4-part shape:</p>
+
+      <div class="callout c-key">
+        <span class="lbl">The 4-part template</span>
+        <b>1. Time &amp; space (as a pair).</b> "O(?) time and O(?) space because…"<br>
+        <b>2. Worst case.</b> "In the worst case [condition], it degrades to [worse Big-O]." <em>(If applicable.)</em><br>
+        <b>3. Practical impact.</b> "At our real data size, that's [ms / seconds / crash]."<br>
+        <b>4. Alternative &amp; tradeoff.</b> "If [X] becomes a bottleneck, we can improve to O(?) by [technique] at the cost of [what]."
+      </div>
+
+      <h3>Walk-through — using the template on two-sum</h3>
+
+      <div class="quote">
+        "This two_sum is <b>O(n) time, O(n) space</b> — one pass over the list, every op inside (dict lookup, insert, subtraction) is O(1). Worst case matches average — always one full pass. At our 10M-row input, that's ~50 ms in Python, well under our SLO. If memory became a concern and the input were sorted, we could switch to a two-pointer approach — O(n) time and <b>O(1) space</b>, trading the dict for an assumption on input ordering."
+        <span class="who">— A senior engineer answering a code-review question.</span>
+      </div>
+
+      <div class="callout c-good">
+        <span class="lbl">Why this template makes you the senior in the room</span>
+        You looked at 20 lines, derived time AND space in 30 seconds, translated Big-O into a wall-clock number at your team's real data size, and proposed an alternative with an explicit tradeoff. That's not textbook algorithms — that's engineering intuition.
+      </div>
+    </section>
+
+    <!-- =========================================================== -->
+    <!-- ============ CHAPTER 10 · THE PAYOFF ======================= -->
+    <!-- =========================================================== -->
+
+    <section class="scene" id="s28">
+      <div class="scene-head"><div class="badge">28</div><div><div class="eyebrow">Chapter 10 · The payoff · Loop closed</div><h2 class="scene-title">The answer — remember the opening experiment?</h2></div></div>
+
+      <p>Back in Chapter 2, two functions gave the same answer. One took milliseconds. One took hours. You didn't have the vocabulary yet. Now you do.</p>
+
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">Version A — the slow one</span>
+<pre><span class="kw">def</span> <span class="fn">has_duplicate_slow</span>(nums):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="nu">1</span>, <span class="fn">len</span>(nums)):
+            <span class="kw">if</span> nums[i] == nums[j]:
+                <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span></pre>
+        </div>
+        <div class="card good">
+          <span class="tag">Version B — the fast one</span>
+<pre><span class="kw">def</span> <span class="fn">has_duplicate_fast</span>(nums):
+    seen = <span class="fn">set</span>()
+    <span class="kw">for</span> n <span class="kw">in</span> nums:
+        <span class="kw">if</span> n <span class="kw">in</span> seen:
+            <span class="kw">return</span> <span class="kw">True</span>
+        seen.add(n)
+    <span class="kw">return</span> <span class="kw">False</span></pre>
+        </div>
+      </div>
+
+      <div class="callout c-good">
+        <span class="lbl">You can now say this in one breath</span>
+        Version A is <b>O(n²) time, O(1) space</b> — two nested loops, no extra memory. Version B is <b>O(n) time, O(n) space</b> — one pass, using a set for O(1) lookup. Version B spends O(n) extra memory to save O(n²) → O(n) time. At n = 1M, that's the difference between <b>25 milliseconds</b> and <b>4 hours</b>.
+      </div>
+
+      <div class="callout c-key">
+        <span class="lbl">The whole lesson in one paragraph</span>
+        Complexity is growth with input size, not wall-clock speed (Ch 1). Big-O is a compact label for that growth — apply three rules (drop constants, keep the dominant term, report the worst case) and only seven curves matter; past O(n²) the algorithm can't practically run (Ch 3–4). Every algorithm has BOTH time AND space complexity, and you can trade one for the other (Ch 5). Five specific traps cause 90% of real-world Python performance bugs (Ch 6). Data-structure choice — <code>list</code> vs <code>dict</code>/<code>set</code>/<code>deque</code> — kills whole classes of complexity (Ch 7). The two-sum family collapses to "walk the input once, remember the right thing" (Ch 8). Given any function, count loops → check what runs inside → drop constants → done (Ch 9). That is Big-O thinking.
+      </div>
+
+      <h3>Where this shows up in your career</h3>
+      <div class="chips">
+        <span class="chip blue"><b>API latency:</b> O(n²) endpoint dies at scale — every scale-related outage is a Big-O story</span>
+        <span class="chip purple"><b>Database indexes:</b> full-scan is O(n), indexed lookup is O(log n) — that's why indexes exist</span>
+        <span class="chip amber"><b>Data pipelines:</b> O(n²) join on 10M rows never finishes — streaming/hashing → O(n log n)</span>
+        <span class="chip red"><b>Front-end:</b> React list that re-renders O(n²) per keystroke feels laggy — memoisation → O(n)</span>
+      </div>
+
+      <h3>Practice assignment — <code>performance_basics.py</code></h3>
+      <ol>
+        <li><b>Re-run the opening experiment:</b> 100k random ints. Time <code>has_duplicate_slow</code> vs <code>has_duplicate_fast</code> with <code>time.perf_counter()</code>. State each Big-O in one sentence.</li>
+        <li><b>Two-sum:</b> write both the O(n²) and O(n) versions. Check they give the same answer.</li>
+        <li><b>Sliding window:</b> given 1M ints and window k=10, compute rolling averages once with <code>list.pop(0)</code> (O(n²)) and once with <code>deque</code> (O(n)). Time both.</li>
+        <li><b>Analysis:</b> add a comment on each function — <code># Time: O(?), Space: O(?)</code> — and one line saying which loop or step does the most work.</li>
+      </ol>
+
+      <div class="callout c-good">
+        <span class="lbl">You can now reason about scale</span>
+        You know complexity is growth. You know the seven curves and the O(n²) danger line. You spot the five traps by reflex. You pick the right container without thinking. You can look at any function and state its Big-O in 30 seconds. <b>That's engineering intuition — not textbook algorithms.</b> Next up: Part 56 — profiling with <code>timeit</code> &amp; <code>cProfile</code>. Because before you optimise, you have to measure.
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<footer>
+  <p><b>Part 55 — Big-O Thinking (Time &amp; Space Complexity)</b> · One Percent Dev Python Series · 2026</p>
+  <p style="margin-top:6px">Companion files: <code>notes.md</code> (written reference)</p>
+  <div class="src">
+    <b>Sources &amp; further reading:</b>
+    Cormen, Leiserson, Rivest, Stein — <em>Introduction to Algorithms</em> (CLRS) ·
+    Sedgewick &amp; Wayne — <em>Algorithms, 4th ed.</em> ·
+    Python <code>time complexity</code> wiki (<code>wiki.python.org/moin/TimeComplexity</code>) ·
+    Timsort (Tim Peters, 2002) — the algorithm behind Python's <code>sorted()</code> ·
+    <code>collections</code> module docs (Counter, deque, defaultdict) ·
+    <code>heapq</code>, <code>bisect</code>, <code>functools.cache</code> ·
+    Big-O cheatsheet at <code>bigocheatsheet.com</code>.
+  </div>
+</footer>
+
+<script>
+  // progress bar
+  const bar = document.getElementById('progress');
+  addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const p = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = p + '%';
+  });
+
+  // sidebar scroll spy
+  const scenes = document.querySelectorAll('section.scene');
+  const links = document.querySelectorAll('aside.sidebar a.nav');
+  const setActive = () => {
+    let current = scenes[0].id;
+    const scrollY = window.scrollY + 120;
+    scenes.forEach(s => { if (s.offsetTop <= scrollY) current = s.id; });
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+  };
+  addEventListener('scroll', setActive, { passive: true });
+  setActive();
+
+  // sidebar toggle (with localStorage memory + keyboard shortcut "s")
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const applySidebar = (collapsed) => {
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+  };
+  const stored = localStorage.getItem('p55-sidebar');
+  const mobileDefault = window.matchMedia('(max-width:900px)').matches;
+  applySidebar(stored === 'collapsed' || (stored === null && mobileDefault));
+
+  toggleBtn.addEventListener('click', () => {
+    const nowCollapsed = !document.body.classList.contains('sidebar-collapsed');
+    applySidebar(nowCollapsed);
+    localStorage.setItem('p55-sidebar', nowCollapsed ? 'collapsed' : 'open');
+  });
+  addEventListener('keydown', (e) => {
+    if (e.key === 's' && !/input|textarea|select/i.test(document.activeElement.tagName)) {
+      toggleBtn.click();
+    }
+  });
+  links.forEach(a => a.addEventListener('click', () => {
+    if (window.matchMedia('(max-width:900px)').matches) applySidebar(true);
+  }));
+
+  // ── copy-to-clipboard button on every <pre> code block ──
+  const COPY_LABEL = 'Copy';
+  const DONE_LABEL = 'Copied';
+  const FAIL_LABEL = 'Failed';
+  document.querySelectorAll('pre').forEach(pre => {
+    const originalText = pre.textContent;   // capture BEFORE injecting the button
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy-btn';
+    btn.textContent = COPY_LABEL;
+    btn.setAttribute('aria-label', 'Copy code to clipboard');
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const ok = await copyText(originalText);
+      btn.textContent = ok ? DONE_LABEL : FAIL_LABEL;
+      btn.classList.toggle('copied', ok);
+      btn.classList.toggle('failed', !ok);
+      setTimeout(() => {
+        btn.textContent = COPY_LABEL;
+        btn.classList.remove('copied', 'failed');
+      }, 1500);
+    });
+    pre.appendChild(btn);
+  });
+
+  async function copyText(text) {
+    // Modern async Clipboard API (needs HTTPS or localhost)
+    if (navigator.clipboard && window.isSecureContext) {
+      try { await navigator.clipboard.writeText(text); return true; }
+      catch (_) { /* fall through to legacy path */ }
+    }
+    // Legacy fallback — works from file:// too
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+</script>
+
+</body>
+</html>
