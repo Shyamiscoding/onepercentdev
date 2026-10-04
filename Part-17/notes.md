@@ -350,7 +350,7 @@ for i in range(len(items)):
 
 ## List operations — time cost (reference only)
 
-What **O(1)**, **O(n)**, etc. **mean** is taught in your **time-complexity** topic (e.g. Part 56). Until then, treat this table as a **bookmark**.
+What **O(1)**, **O(n)**, etc. **mean** is taught in your **time-complexity** topic (e.g. Part 55). Until then, treat this table as a **bookmark**.
 
 | Operation | Time (usual) |
 |-----------|----------------|

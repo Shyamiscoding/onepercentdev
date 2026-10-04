@@ -678,5 +678,5 @@ Save as `src/string_practice.py`.
 
 ---
 
-> **Next:** Part 11 — Operators, Truthiness, and Conditionals. Comparison operators, logical operators, truthy/falsy values, and decision-making with if/elif/else.
+> **Next:** Part 11 — Booleans and Comparison Operators. Your data can now answer yes/no questions. You will learn True and False, and how to compare values with ==, !=, >, <, >=, <=.
 

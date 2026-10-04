@@ -121,11 +121,11 @@ def demo_03_with_statement():
 
     # We keep a reference to the file object just to PROVE it is closed
     # once the `with` block ends. You would not normally do this.
-    # saved_ref = None
-    # with open("example.txt", "r", encoding="utf-8") as f:
-    #     print(f.read())
-    #     saved_ref = f
-    # print(f"is the file closed after the block? {saved_ref.closed}")
+    saved_ref = None
+    with open("example.txt", "r", encoding="utf-8") as f:
+        print(f.read())
+        saved_ref = f
+    print(f"is the file closed after the block? {saved_ref.closed}")
 
     # # The key benefit: even if the block CRASHES, the file still closes.
     try:

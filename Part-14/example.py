@@ -1,14 +1,14 @@
-# age = 20
+age = 20
 
-# # # Standard if-else:
-# # if age >= 18:
-# #     status = "adult"
-# # else:
-# #     status = "minor"
+# Standard if-else:
+if age >= 18:
+    status = "adult"
+else:
+    status = "minor"
 
 # status = "adult" if age >= 18 else "minor"
 
-# print(status)
+print(status)
 
 
 # command = input("Enter command: ")

@@ -367,24 +367,26 @@ When you learn functions later, this pattern becomes even more powerful with ear
 
 You might think machine learning is some magical, complex technology far beyond what you are learning. Here is the truth:
 
-A **Decision Tree** — one of the most widely used ML algorithms — is literally a tree of if-elif-else statements:
+A **Decision Tree** — one of the most widely used ML algorithms — is literally a tree of if-elif-else statements. Imagine a bank deciding whether to approve a loan:
 
 ```python
-if petal_length < 2.5:
-    species = "setosa"
-elif petal_width < 1.7:
-    species = "versicolor"
+if credit_score < 600:
+    decision = "rejected"
+elif income < 30000:
+    decision = "rejected"
+elif existing_loans > 3:
+    decision = "rejected"
 else:
-    species = "virginica"
+    decision = "approved"
 ```
 
-That is a Decision Tree. The ML algorithm figures out the best conditions and thresholds automatically by analyzing data — but the final output is just nested conditionals. The same `if-elif-else` you are learning right now.
+That is a Decision Tree. The ML algorithm analyzes thousands of past loan applications and figures out the best conditions and thresholds automatically — but the final output is just an if-elif-else chain. The same structure you learned in this part.
 
-**Random Forest** — one of the most powerful ML models used in production at companies like Netflix and Amazon — is just **hundreds of Decision Trees voting together**. Each tree is an if-elif-else chain. Each tree gives an answer. The majority wins.
+**Random Forest** — one of the most powerful ML models used in production at companies like Netflix and Amazon — is just **hundreds of Decision Trees voting together**. Each tree is an if-elif-else chain. Each tree gives an answer — approved or rejected. The majority wins.
 
-When someone says *"I built a machine learning model"* — in many cases, what they really built is a giant if-elif-else tree that the computer wrote for them. The concept you are learning right now is the same concept powering ML models in production.
+When someone says *"I built a machine learning model"* — in many cases, what they built is a giant if-elif-else tree that the computer wrote by learning patterns from data. The concept you learned right now is the same concept powering ML models in production.
 
-Read more: [Decision Trees — scikit-learn documentation](https://scikit-learn.org/stable/modules/tree.html) | [Random Forest — scikit-learn documentation](https://scikit-learn.org/stable/modules/ensemble.html#forests-of-randomized-trees)
+Read more: [Decision Trees — scikit-learn](https://scikit-learn.org/stable/modules/tree.html) | [Random Forest — scikit-learn](https://scikit-learn.org/stable/modules/ensemble.html#forests-of-randomized-trees)
 
 ---
 
@@ -440,20 +442,5 @@ Use: `if-elif-else`, `and` (Part 12), guard clause pattern.
 
 ---
 
-## Why Python Had No switch-case for 30 Years
-
-Every major language — C (1972), Java (1995), JavaScript (1995) — has had a `switch` statement from the beginning. Developers asked for it in Python repeatedly. Guido van Rossum rejected it — **twice**:
-
-- **[PEP 275 (2001)](https://peps.python.org/pep-0275/)** — proposed adding a `switch` statement. Rejected.
-- **[PEP 3103 (2006)](https://peps.python.org/pep-3103/)** — proposed it again with multiple implementation options. Rejected.
-
-Guido's argument: `if-elif-else` is clear enough. Adding `switch` would add complexity to the language without meaningful benefit. He believed Python should have **one obvious way to do things** (The Zen of Python: *"There should be one — and preferably only one — obvious way to do it."*).
-
-Python finally got `match-case` in **Python 3.10 (2021)** — but it was not a simple `switch`. It was **[PEP 634 — Structural Pattern Matching](https://peps.python.org/pep-0634/)** — a much more powerful concept that goes far beyond comparing values. Guido would not add it until the proposal was genuinely better than what `if-elif-else` already provided.
-
-Python's creator believed so strongly in `if-elif-else` that he defended it for **20 years**. The tool you just learned is not "basic." It is the decision-making tool that Python's designer considered sufficient for two decades of professional software development.
-
----
-
-> **Next:** Part 14 — Professional Conditional Patterns. You can now make any decision in code. But there are cleaner, more professional ways to write these — the ternary operator, match-case (the feature Guido resisted for 20 years), and real-world patterns that experienced developers use daily.
+> **Next:** Part 14 — Professional Conditional Patterns. You can now make any decision in code. But there are cleaner, more professional ways to write these — the ternary operator, match-case, and real-world patterns that experienced developers use daily.
 

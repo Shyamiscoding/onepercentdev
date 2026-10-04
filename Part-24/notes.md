@@ -82,7 +82,7 @@ Procedural:         deposit(balance, 500)             → reusable, data goes TO
 OOP:                acc.deposit(500)                  → data carries the function WITH it
 ```
 
-Same problem, three levels of organization. Neither procedural nor OOP is "better" — most real Python projects use both. We will explore OOP in depth in Parts 37–41 — for now, this glimpse is enough.
+Same problem, three levels of organization. Neither procedural nor OOP is "better" — most real Python projects use both. We will explore OOP in depth in Parts 43–44 — for now, this glimpse is enough.
 
 ### Why Procedural First
 

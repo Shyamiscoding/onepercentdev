@@ -105,17 +105,17 @@ Integers convert cleanly into binary — `10` is `1010`, `255` is `11111111`, no
 Before we dive into numbers, here is the complete map of all data types in Python. This is your mental model — the big picture of everything you will learn in the coming parts.
 
 
-| Type       | What It Stores                | Mutable? | Example               | When You Use It                       |
-| ---------- | ----------------------------- | -------- | --------------------- | ------------------------------------- |
-| `int`      | Whole numbers                 | No       | `10`, `-3`, `0`       | Counting, IDs, indexing               |
-| `float`    | Decimal numbers               | No       | `3.14`, `-0.5`        | Prices, measurements, calculations    |
-| `bool`     | True or False                 | No       | `True`, `False`       | Conditions, flags, comparisons        |
-| `NoneType` | Absence of a value            | No       | `None`                | Default values, "nothing here"        |
-| `str`      | Text (sequence of characters) | No       | `"hello"`, `"Python"` | Names, URLs, API data, file content   |
-| `list`     | Items in sequence (any type)  | Yes      | `[1, 2, 3]`           | Shopping carts, user lists, logs      |
-| `tuple`    | Ordered, fixed collection     | No       | `(12.97, 77.59)`      | Coordinates, config, RGB colors       |
-| `set`      | Unique items (no order)       | Yes      | `{"Python", "SQL"}`   | Removing duplicates, permissions      |
-| `dict`     | Key-value pairs               | Yes      | `{"name": "Dev"}`     | API responses, configs, database rows |
+| Type       | What It Stores                | Mutable? | Example               | When You Use It                       | Covered In     |
+| ---------- | ----------------------------- | -------- | --------------------- | ------------------------------------- | -------------- |
+| `int`      | Whole numbers                 | No       | `10`, `-3`, `0`       | Counting, IDs, indexing               | Part 9         |
+| `float`    | Decimal numbers               | No       | `3.14`, `-0.5`        | Prices, measurements, calculations    | Part 9         |
+| `str`      | Text (sequence of characters) | No       | `"hello"`, `"Python"` | Names, URLs, API data, file content   | Part 10        |
+| `bool`     | True or False                 | No       | `True`, `False`       | Conditions, flags, comparisons        | Part 11        |
+| `NoneType` | Absence of a value            | No       | `None`                | Default values, "nothing here"        | Part 11        |
+| `list`     | Items in sequence (any type)  | Yes      | `[1, 2, 3]`           | Shopping carts, user lists, logs      | Parts 17–18    |
+| `tuple`    | Ordered, fixed collection     | No       | `(12.97, 77.59)`      | Coordinates, config, RGB colors       | Part 19        |
+| `set`      | Unique items (no order)       | Yes      | `{"Python", "SQL"}`   | Removing duplicates, permissions      | Part 20        |
+| `dict`     | Key-value pairs               | Yes      | `{"name": "Dev"}`     | API responses, configs, database rows | Parts 21–22    |
 
 
 We will go deep into each one in its own part — all methods, patterns, real-time examples, interview questions, time complexity. Right now, this is your mental map. You know what exists. Now we go deep.
@@ -139,14 +139,15 @@ Here is the order we will cover all data types and tools:
 
 1. **Numbers** (`int`, `float`) — this part (Part 9)
 2. **Strings** (`str`) — Part 10
-3. **Operators and Boolean** (`bool`) — Part 11
-4. **Conditionals** — Part 11
-5. **Loops** — Parts 12 and 13
-6. **Lists** (`list`) — Parts 14 and 15 (deep dive with all methods, complexity, real-time examples)
-7. **Tuples** (`tuple`) — Part 16 (with List vs Tuple differentiation)
-8. **Sets** (`set`) — Part 17 (with Set vs List differentiation)
-9. **Dictionaries** (`dict`) — Parts 18 and 19 (with Dict vs List differentiation)
-10. **Comprehensions** — Part 20 (list, dict, and set comprehensions)
+3. **Booleans and Comparison Operators** (`bool`) — Part 11
+4. **Logical Operators and Truthiness** — Part 12
+5. **Conditionals** — Parts 13 and 14 (core patterns + professional patterns)
+6. **Loops** — Parts 15 and 16 (while loops + for loops)
+7. **Lists** (`list`) — Parts 17 and 18 (deep dive with all methods, complexity, real-time examples)
+8. **Tuples** (`tuple`) — Part 19 (with List vs Tuple differentiation)
+9. **Sets** (`set`) — Part 20 (with Set vs List differentiation)
+10. **Dictionaries** (`dict`) — Parts 21 and 22 (with Dict vs List differentiation)
+11. **Comprehensions** — Part 23 (list, dict, and set comprehensions)
 
 Now let us start with the first data type — numbers. And they are not as simple as you think.
 

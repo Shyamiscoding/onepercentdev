@@ -24,15 +24,23 @@ Anyone can set `balance` to anything. In a real banking system, this is a catast
 
 ## Naming Conventions for Privacy
 
-Python does not have strict private/public keywords like Java or C++. Instead, it uses naming conventions:
+Python does not have strict private/public/protected keywords like Java or C++. Instead, it uses naming conventions:
 
-### Single Underscore: _private (Convention)
+| Access level | Python syntax | Meaning |
+|---|---|---|
+| **Public** | `balance` | Anyone can access it |
+| **Protected** | `_balance` (single `_`) | "Internal use" hint — subclasses may use it, outsiders should not |
+| **Private** | `__balance` (double `__`) | Name-mangled to `_ClassName__balance` |
+
+Remember: these are only conventions. Python does not truly lock anything — even a "private" attribute is still reachable if you really want it.
+
+### Single Underscore: _protected (Convention)
 
 ```python
 class BankAccount:
     def __init__(self, owner, balance):
         self.owner = owner
-        self._balance = balance   # "private" by convention
+        self._balance = balance   # "protected" by convention
 
     def deposit(self, amount):
         if amount <= 0:
@@ -45,7 +53,7 @@ class BankAccount:
 
 `_balance` signals to other developers: "Do not access this directly. Use the provided methods." Python does not enforce it — it is a professional convention that everyone follows.
 
-### Double Underscore: __mangled (Name Mangling)
+### Double Underscore: __private (Name Mangling)
 
 ```python
 class BankAccount:
@@ -57,7 +65,9 @@ acc = BankAccount(5000)
 print(acc._BankAccount__balance)  # 5000 — still accessible, just mangled
 ```
 
-Python renames `__balance` to `_BankAccount__balance` internally. This prevents accidental name collisions in inheritance, but it is not true security. In practice, single underscore `_` is used far more often than double underscore `__`.
+Python renames `__balance` to `_BankAccount__balance` internally. Name mangling only happens *inside the class body* — so from outside, the name `__balance` literally does not exist, which is why `acc.__balance` raises `AttributeError`. It is a rename, not a lock: `acc._BankAccount__balance` still works.
+
+The real purpose of name mangling is to **prevent accidental name collisions in inheritance**, not to provide security. In practice, single underscore `_` is used far more often than double underscore `__`.
 
 ---
 

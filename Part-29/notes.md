@@ -313,7 +313,7 @@ my_project/
 
 Every professional project follows a structure like this. Functions are grouped by purpose into modules. Related modules are grouped into packages. The entry point imports from these modules.
 
-> **Note:** In this series, assignments use `src/` as the code folder. When running your scripts, run from the **project root** (the folder containing `src/`). In later parts (Part 50), we will learn the professional `src/` layout with proper packaging — for now, just keep your code organized in `src/` and run from the parent directory.
+> **Note:** In this series, assignments use `src/` as the code folder. When running your scripts, run from the **project root** (the folder containing `src/`). In later parts (Part 59), we will learn the professional `src/` layout with proper packaging — for now, just keep your code organized in `src/` and run from the parent directory.
 
 ---
 
@@ -346,4 +346,4 @@ Save both files in your `src/` directory.
 
 ---
 
-> **Next:** Part 30 — Virtual Environments and Dependencies. Every professional Python project uses isolated environments. Without this, deployment fails and collaboration breaks.
+> **Next:** Part 30 — Third-Party Packages & APIs. You know how to import local files. Now let's download code from the internet and write a script that talks to ChatGPT!

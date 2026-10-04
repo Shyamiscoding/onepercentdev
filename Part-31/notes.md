@@ -845,3 +845,7 @@ The journey in this episode: **problem** (version conflicts) → **classic solut
 
 ---
 
+> **Next:** Part 32 — Publishing Your Own Package (To PyPI). We've learned how to structure local packages and download libraries from PyPI. Now let's combine that knowledge to author, build, and deploy your code so anyone in the world can `pip install` it!
+
+---
+

@@ -207,5 +207,7 @@ You didn't just write a script — you authored, packaged, and distributed an op
 
 ---
 
+> **Next:** Part 33 — Exceptions Part 1. Your package is live and strangers will use it in ways you never tested. Time to learn how to handle the inevitable — errors, bad input, and broken connections — without crashing.
+
 
 
